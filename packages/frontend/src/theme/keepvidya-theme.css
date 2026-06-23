@@ -1,0 +1,93 @@
+/* ===========================================================================
+   KEEPVIDYA — Brand theme tokens (LOCKED). Vendored verbatim from the brand source
+   of truth: D:\Branding\Parent\keepvidya\keepvidya-theme.css + KEEPVIDYA-color-system.md.
+   Two hues: ink (#1B2A33) + copper (#C0703C). ONE accent: copper. Do NOT invent colours.
+   Themes: Light (default) · Medium (dimmed light) · Dark. The theme engine mirrors these.
+   =========================================================================== */
+
+:root {
+  /* Brand core (fixed) */
+  --brand-ink: #1b2a33;
+  --brand-slate: #33474f;
+  --brand-copper: #c0703c;
+  --brand-copper-l: #d98e5a;
+  --brand-stone: #e7dfd4;
+  --brand-paper: #fbf8f3;
+  --brand-slate-300: #9daab3;
+}
+
+/* LIGHT (default) */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: #fbf8f3;
+  --surface: #ffffff;
+  --surface-2: #f4f1ea;
+  --surface-3: #ece6dc;
+  --border: #e4dbce;
+  --border-strong: #cdc2b0;
+  --text: #1b2a33;
+  --text-secondary: #4a5c65;
+  --text-muted: #6b7c85;
+  --text-inverse: #fbf8f3;
+  --primary: #c0703c;
+  --primary-hover: #a85e2e;
+  --primary-active: #8a4c24;
+  --on-primary: #ffffff;
+  --primary-subtle: #fbf1e9;
+  --primary-border: #e8b894;
+  --focus-ring: #d98e5a;
+  --link: #a85e2e;
+  --success: #3f7d5b;
+  --success-subtle: #e7f0eb;
+  --warning: #c28a2e;
+  --warning-subtle: #f8efdd;
+  --error: #b0463c;
+  --error-subtle: #f7e5e2;
+  --info: #3e6b82;
+  --info-subtle: #e4edf1;
+  --shadow-sm: 0 1px 2px rgba(27, 42, 51, 0.06);
+  --shadow-md: 0 4px 14px rgba(27, 42, 51, 0.1);
+}
+
+/* MEDIUM (dimmed light — Knovex's third theme) */
+[data-theme='medium'] {
+  color-scheme: light;
+  --bg: #f4f1ea;
+  --surface: #fbf8f3;
+  --surface-2: #ece6dc;
+  --surface-3: #e4dbce;
+}
+
+/* DARK */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #121d23;
+  --surface: #1b2a33;
+  --surface-2: #25363d;
+  --surface-3: #2e4048;
+  --border: #33474f;
+  --border-strong: #45585f;
+  --text: #f3eee7;
+  --text-secondary: #b4c0c5;
+  --text-muted: #7e8e96;
+  --text-inverse: #121d23;
+  --primary: #d98e5a;
+  --primary-hover: #e8a472;
+  --primary-active: #c0703c;
+  --on-primary: #121d23;
+  --primary-subtle: #2a2118;
+  --primary-border: #7a4a2a;
+  --focus-ring: #e8a472;
+  --link: #e0a06e;
+  --success: #5fa67d;
+  --success-subtle: #1c2c24;
+  --warning: #d9a94e;
+  --warning-subtle: #2c2616;
+  --error: #d46a5f;
+  --error-subtle: #2e1c1a;
+  --info: #6ca0b8;
+  --info-subtle: #18272e;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
+}

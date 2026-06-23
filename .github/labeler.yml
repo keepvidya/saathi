@@ -1,0 +1,15 @@
+# Auto-labels PRs by path (actions/labeler@v5).
+domain:
+  - changed-files: [{ any-glob-to-any-file: 'packages/domain/**' }]
+backend:
+  - changed-files: [{ any-glob-to-any-file: 'packages/backend/**' }]
+frontend:
+  - changed-files: [{ any-glob-to-any-file: 'packages/frontend/**' }]
+desktop:
+  - changed-files: [{ any-glob-to-any-file: 'packages/desktop/**' }]
+docs:
+  - changed-files: [{ any-glob-to-any-file: ['docs/**', '**/*.md'] }]
+tests:
+  - changed-files: [{ any-glob-to-any-file: '**/test/**' }]
+ci:
+  - changed-files: [{ any-glob-to-any-file: '.github/**' }]

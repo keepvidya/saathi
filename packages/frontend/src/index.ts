@@ -1,0 +1,9 @@
+import './styles.css'
+
+export { mountShell } from './shell/shell'
+export type { ShellHandle } from './shell/shell'
+export { loadSkin, setSkin, toggleTheme, currentSkin, getTheme, themesByBase, THEMES, SKINVARS } from './theme/theme'
+export type { Theme, ThemeBase } from './theme/theme'
+export { themeGalleryHtml } from './theme/gallery'
+export { bridge } from './bridge/saathi.bridge'
+export type { PaneId, Pane } from './shell/router'

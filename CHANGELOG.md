@@ -1,0 +1,61 @@
+# Changelog
+
+All notable changes to Saathi are documented here. Format: [Keep a Changelog](https://keepachangelog.com); versioning: [SemVer](https://semver.org).
+
+## [Unreleased]
+
+### Added — M6 Chat
+- **Local AI chat** (the default pane): a pure `ChatPort` + deterministic `EchoChat` + `Conversation` model and a minimal **XSS-safe markdown→HTML** renderer (`@saathi/domain`); an **Ollama chat adapter** (`@saathi/backend`, `/api/chat`, `''` on failure) + `chat:reply` IPC; the Chat pane (message list, composer, markdown replies, `CompositeChat` = Ollama→Echo fallback) in `@saathi/frontend`.
+- Works **offline** (deterministic reply) and uses **Ollama** when running; conversation persists in-session; replies render markdown (bold/italic/code/lists/links) safely (escape-first, link-sanitised).
+- Tests: markdown renderer + Conversation + EchoChat units, OllamaChat (mocked fetch), CompositeChat fallback, Chat-pane integration, e2e send→reply. 107 tests total, gated coverage met. Screenshots: chat light + dark.
+
+### Added — M5b PDF export
+- **pdf-lib export adapter** (`@saathi/backend`) behind `PdfExportPort` — renders `DocData` to a paginated, word-wrapped A4 PDF (Helvetica/-Bold, brand ink), with text sanitised to the font encoding. The only file importing `pdf-lib` (Wrapper Rule). Integration test reloads the output with pdf-lib and asserts a valid, multi-page PDF.
+- **Download PDF** button on the Docs editor → `doc:exportPdf` IPC → host Save. Completes the Office export set: **.xlsx / .docx / .pptx / .pdf**.
+- Tests: pdf round-trip + pagination integration, Docs-editor PDF-button + bridge integration, e2e control present. 90 tests total, gated coverage met.
+
+### Added — M5 Office home (staged launchpad)
+- A staged **Office home** (the Keepvidya-Office layout, on the locked brand palette): hero + local badge + **Create new** cards (Spreadsheet/Document/Presentation) + **Templates** (Monthly budget, Business letter, Pitch deck, Invoice) + **Recent** (in-session). Picking any opens the matching editor.
+- `renderOffice` is now a small state machine (`home` ↔ `editor`); the editor view gained a **← Office** back control. The Sheets/Docs/Slides switcher, AI build, and exports (M2–M4b) are reused unchanged.
+- Tests: home routing integration (create/template/recent → editor, back, switcher+AI-build intact) + e2e (home → editor → back). 86 tests total, gated coverage met. Screenshots: home light + dark.
+
+### Added — M4b Expert Agents (the AI build)
+- **Per-type expert agents** (`@saathi/domain`): an `LlmPort` (the only LLM seam) + a deterministic `TemplateLlm`, per-type experts (Slides/Sheets/Docs), validators, and the `runBuild` ReAct orchestrator (reason→act→observe→validate→fix) that emits `BuildStep`s and produces a `DeckData`/`SheetData`/`DocData`. **Numbers are computed by the M2 formula engine, never invented** by the LLM; self-correction is bounded (no loops).
+- **Ollama adapter** (`@saathi/backend`) behind `LlmPort` (built-in `fetch`; `[]` on failure) + `llm:narrate` IPC. Frontend `CompositeLlm` tries Ollama, falls back to the deterministic narrator — so the build is always correct and works offline.
+- **AI-build bar** in Office: type a brief → a live **ReAct step log** (agent-labelled) → the built draft **loads into the editor**, editable, on-brand. Editors now accept an optional initial model.
+- Tests: agent unit (valid builds, computed numbers, bounded self-correct), validators unit, Ollama adapter (mocked fetch), CompositeLlm fallback, AI-build integration, e2e. 84 tests total, gated coverage met. Screenshots: build log + loaded result.
+
+### Added — M4 Office · Slides
+- **Pure DeckData model** (`@saathi/domain`): deck title + slides of `{title, bullets[]}`; `deckPlainText` + `sampleDeck` (3-slide investor deck).
+- **pptxgenjs export adapter** (`@saathi/backend`) behind `DeckExportPort` — a real `.pptx`, one slide each with a title + bullet list (Wrapper Rule: the only file importing `pptxgenjs`; integration test unzips the file and asserts `ppt/slides/slide1.xml` carries the title + a bullet).
+- **Slides editor** (`@saathi/frontend`): a 16:9 editable slide canvas (title + bullets) + a slide strip (thumbnails, switch, "＋ add"), brand light/dark. The Office switcher is now **Sheets / Docs / Slides**.
+- **`slide:exportPptx` IPC** → host Save dialog → backend adapter.
+- Tests: domain deck unit + pptx round-trip integration + Slides-editor integration + 3-way Office switcher + e2e. 65 tests total, gated coverage met. Screenshots: slides light + dark.
+
+### Added — M3 Office · Docs
+- **Pure DocData model** (`@saathi/domain`): blocks (h1/h2/p) + inline runs with bold/italic/underline; `docToHtml` (escaped) + `docPlainText` + `sampleDoc`.
+- **docx export adapter** (`@saathi/backend`) behind `DocExportPort` via the `docx` lib — real `.docx` with headings + bold/italic/underline runs (Wrapper Rule: only this file imports `docx`; integration test unzips the file and asserts the text + a `<w:b>` bold run).
+- **Word-style editor** (`@saathi/frontend`): a contenteditable page from the model, a B/I/U + H1/H2/¶ toolbar (`execCommand`), `htmlToDoc` serializer (unit-tested), serif headings, brand light/dark. Plus an **Office Sheets/Docs switcher** (Sheets M2 stays intact).
+- **`doc:exportDocx` IPC** → host Save dialog → backend adapter.
+- Tests: domain doc unit + `htmlToDoc` unit + docx round-trip integration + Office-switcher integration + e2e (render, switch, export). 56 tests total, gated coverage met. Screenshots: docs light + dark.
+
+### Added — M2 Office · Sheets (first real engine)
+- **`@saathi/domain`** (new pure package, ADR-0004): a real **formula engine** — recursive-descent evaluator (no `eval`), `+ - * / ()` precedence, cell refs, ranges, `SUM/AVERAGE/MIN/MAX/COUNT`, dependency chains, and error **values** (`#ERR`/`#CIRC`/`#DIV/0`). Shared by frontend (live edit) and backend (export).
+- **ExcelJS export adapter** (`@saathi/backend`) behind `SpreadsheetExportPort` — emits a real `.xlsx` with values, `{formula, result}` cells, and a frozen header. The one file allowed to import ExcelJS (Wrapper Rule, enforced by lint + dependency-cruiser).
+- **Editable Sheets grid** (`@saathi/frontend`): column letters + row numbers, frozen header, formula bar, contenteditable cells with **live recompute**, copper selection, brand light/dark.
+- **`sheet:exportXlsx` IPC** → host Save dialog → backend adapter writes the file (composition root in `@saathi/desktop`).
+- Tests: 16 domain unit + ExcelJS round-trip integration + grid integration + e2e (open, live recompute, export). 46 tests total, gated coverage met. Visual review: light + dark sheets screenshots committed.
+
+### Added — M1 Shell & Themes (brand-locked)
+- **Light · Medium · Dark** themes on the **LOCKED Keepvidya colour system** (ink + copper, one accent), tokens vendored verbatim from `Parent/keepvidya/keepvidya-theme.css` into `frontend/src/theme/keepvidya-theme.css` and mirrored 1:1 in the engine. Full semantic token set (text/surface/border/status/shadows/focus).
+- **Theme gallery** popover in the topbar (3 brand swatches, Light/Dark groups, active marker) + quick light/dark toggle that **remembers the last light skin (Light vs Medium)**; full persistence.
+- **Brand-lock guard** test: every theme's `--primary` must be brand copper and no theme may set a decorative background — fails CI if an off-brand colour is introduced.
+- Tests: unit (3 themes apply, brand-lock, toggle memory), integration (gallery render/apply/close), e2e (Dark persists across relaunch) — 22 tests, gated coverage met. Visual review: Light/Medium/Dark screenshots committed.
+
+### Added — M0 Walking Skeleton
+- **Monorepo (npm workspaces) — backend ⟂ frontend, not a monolith** (ADR-0003): `@saathi/shared` (contracts), `@saathi/backend` (pure Node logic, no Electron/DOM), `@saathi/frontend` (UI, runs standalone in a browser), `@saathi/desktop` (thin Electron host wiring them over IPC).
+- Secure Electron host (contextIsolation, sandbox, no nodeIntegration; typed `window.saathi` bridge, one method per IPC channel; prod CSP; external links to OS browser).
+- Frontend shell: collapsible rail, pane router (O(1) registry), topbar, theme engine (light/dark; full 10-skin set in M1), stub panes for all sections.
+- Boundary enforcement (ESLint `no-restricted-imports` + dependency-cruiser) — a cross-boundary import fails the build (verified by negative test).
+- Engineering governance: ENGINEERING-PROTOCOL, ARCHITECTURE, BUILD-PLAN, ADR-0001/0002/0003, BA/DEV/QA/TEST-PLAN for `00-walking-skeleton`.
+- Tooling: TypeScript (strict, per-package libs), ESLint + Prettier, dependency-cruiser, Vitest (unit + integration, 100% coverage on gated modules), Playwright-Electron e2e (+ light/dark screenshots), GitHub Actions CI.

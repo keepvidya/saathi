@@ -1,0 +1,7 @@
+# Default owner for everything in the repo.
+* @keepvidya
+
+# Governance + architecture changes get extra scrutiny.
+/docs/ENGINEERING-PROTOCOL.md @keepvidya
+/docs/ARCHITECTURE.md         @keepvidya
+/docs/adr/                    @keepvidya

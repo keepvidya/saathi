@@ -1,0 +1,10 @@
+node_modules
+out
+dist
+coverage
+dist-types
+*.log
+.DS_Store
+.vite
+test-results
+playwright-report

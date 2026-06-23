@@ -1,0 +1,49 @@
+{
+  "name": "saathi",
+  "version": "0.1.0",
+  "description": "Saathi — your local AI workspace, by Keepvidya (monorepo)",
+  "author": "Keepvidya",
+  "license": "UNLICENSED",
+  "private": true,
+  "workspaces": [
+    "packages/shared",
+    "packages/domain",
+    "packages/backend",
+    "packages/frontend",
+    "packages/desktop"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @saathi/desktop",
+    "dev:frontend": "npm run dev --workspace @saathi/frontend",
+    "build": "npm run build --workspace @saathi/desktop",
+    "typecheck": "tsc -p packages/shared && tsc -p packages/domain && tsc -p packages/backend && tsc -p packages/frontend && tsc -p packages/desktop",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "boundary": "depcruise packages",
+    "test:unit": "vitest run --coverage",
+    "test:e2e": "npm run test:e2e --workspace @saathi/desktop",
+    "test": "npm run test:unit",
+    "ci": "npm run typecheck && npm run lint && npm run boundary && npm run test:unit && npm run build"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^2.1.8",
+    "dependency-cruiser": "^16.8.0",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "eslint": "^9.17.0",
+    "jsdom": "^25.0.1",
+    "jszip": "^3.10.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}

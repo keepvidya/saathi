@@ -4,6 +4,13 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M10a Agent (tool-using ReAct loop)
+- **The Agent** — Saathi's "AI employee": give it a goal, a **supervisor reasons**, **delegates to worker tools** that do the real work, observes, and answers — showing its step trace. Per our DNA the **tools compute the truth**: **calc** uses the M2 formula engine (exact arithmetic, no `eval`), **search** answers from a built-in knowledge base (extractive + cited). The supervisor only routes and phrases.
+- **Pure core** (`@saathi/domain/agent`): a `Tool` + `ToolRegistry` abstraction, real builtin tools (`calc`, `search`), and a **bounded ReAct `runAgent`** loop driven by a `Planner`. The default **`RulefulPlanner`** routes deterministically (math → calc, questions → search) — fully offline and testable; a model can narrate/route later behind the same seam. The loop is `maxSteps`-bounded (no runaway) and records an ordered reason/act/observe/answer trace.
+- **Agent pane** (`@saathi/frontend`): a goal input, the live supervisor→worker **step trace** (phase-styled, agent-labelled), and the final answer.
+- Tests: tool units (calc exact + error values, search grounded), `runAgent` routing/trace/bound/robustness units, `RulefulPlanner` routing, Agent-pane integration, e2e (goal → trace → exact answer). 207 unit/int + 17 e2e green; coverage met. Screenshots: agent light (calc) + dark (search).
+- **Deferred → M10b Memory** (SQLite-FTS5), **M10c Skills**, an LLM planner, MCP tools, side-effecting tools.
+
 ### Added — M9b Browser · Shields (ad/tracker blocking)
 - **Shields**: the browser now **blocks ads and trackers** by default, offline. A real engine (`@ghostery/adblocker-electron`) runs in the **main process** over a bundled curated filter list and cancels matching requests on the tabs' session; the toolbar shows a 🛡 **blocked-count** badge, and a click **toggles** Shields off/on.
 - The engine imports Electron, so — unlike pdf.js/Pyodide — it's wrapped in **`desktop/main/ad-block.ts`** (the only importer; the composition root), not `@saathi/backend`. The **filter list + the Shields tally live in `@saathi/domain`** (pure), so the same rules are **verified by the core `@ghostery/adblocker` engine in a unit test** (no electron) — blocks `doubleclick.net`/`google-analytics.com`, allows first-party scripts.

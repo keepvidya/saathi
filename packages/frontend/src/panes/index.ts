@@ -4,6 +4,7 @@ import { renderChat } from './chat/chat-pane'
 import { renderKnowledge } from './knowledge/knowledge-pane'
 import { renderLearn } from './learn/learn-pane'
 import { renderBrowser } from './browser/browser-pane'
+import { renderAgent } from './agent/agent-pane'
 
 /** Nav metadata (order = rail order). Settings is pinned separately in the shell footer. */
 export interface NavItem {
@@ -73,6 +74,7 @@ const REAL: Partial<Record<PaneId, Pane>> = {
   learn: { id: 'learn', label: 'Learn', render: renderLearn },
   office: { id: 'office', label: 'Office', render: renderOffice },
   browser: { id: 'browser', label: 'Browser', render: renderBrowser },
+  agent: { id: 'agent', label: 'Agent', render: renderAgent },
 }
 
 export const PANES: Pane[] = [...NAV, SETTINGS_NAV].map(

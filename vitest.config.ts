@@ -16,6 +16,7 @@ export default defineConfig({
         'packages/frontend/src/bridge/**',
         'packages/frontend/src/agent/**',
         'packages/frontend/src/chat/**',
+        'packages/frontend/src/adapters/**',
         'packages/desktop/src/preload/build-api.ts',
         'packages/desktop/src/main/security.ts',
       ],

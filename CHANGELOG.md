@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M8 Learn (lessons + quiz engine + read-aloud)
+- **Pure Lesson model + deterministic quiz engine** (`@saathi/domain/learn`): a `Lesson` of typed blocks (`prose` / `code` / `quiz`); `gradeQuiz` (correct ⇔ `chosen === answer`) and `scoreLesson` (correct / total / answered) — **correctness is decided by our code, never a model** (DNA); `lessonPlainText` (narration for read-aloud / search) + `sampleLesson`.
+- **Learn pane** (`@saathi/frontend`): renders a lesson (prose via the XSS-safe `markdownToHtml`, code blocks, interactive quizzes), grades each answer with the engine, reveals the correct option + explanation, locks after answering, and shows a running **score**. **Read-aloud** via a wrapped **Web Speech** adapter (`SpeechPort`; `WebSpeech` + `SilentSpeech` fallback) — built-in browser API, no new dependency, no CSP change. Brand-locked light + dark (status green/red from the locked theme tokens).
+- Tests: domain quiz-engine units (grade, score partial/none, plain-text), speech-adapter units (mocked `speechSynthesis` + silent fallback), Learn-pane integration (render, correct/incorrect, lock, score, read-aloud), e2e (render → answer → correct + score). 140 unit/int + 10 e2e green; coverage met (learn.ts 100%). Screenshots: learn light + dark.
+- **Deferred to M8b "Learn — rich rendering":** math (KaTeX), diagrams (Mermaid), syntax highlighting (Shiki), runnable Python (Pyodide), Piper TTS — each a wrapped render/exec adapter (+ a CSP `font-src 'self'` change for KaTeX fonts).
+
 ### Added — M7 Knowledge / RAG
 - **Pure RAG engine** (`@saathi/domain`): `chunkText` (paragraph/size chunking) → a `Corpus` repository → a lexical **`retrieve`** (TF-IDF: term-frequency × smoothed inverse-doc-frequency, top-k) → an **extractive, cited `composeAnswer`** → `{ answer, citations }`. Per our DNA the grounding path has **no LLM** — the answer is verbatim document text with a `[n]` citation back to its source; nothing is invented.
 - **PDF text extraction** (`@saathi/backend`) behind a new `PdfReadPort`, wrapping **pdf.js (`pdfjs-dist`, legacy Node build)** — the only file importing it (Wrapper Rule, extended in ESLint + dependency-cruiser). Loaded via dynamic `import()` so the ESM library runs from the CJS main bundle. `pdf:extractText` IPC (validated) → renderer `bridge.extractPdfText`. *(pdf-parse was tried first but its bundled, ancient pdf.js fails on Node 22.)*

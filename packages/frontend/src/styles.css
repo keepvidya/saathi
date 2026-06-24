@@ -1344,6 +1344,15 @@ button {
   line-height: 1.6;
   color: var(--text);
 }
+.lsn-math {
+  margin: 0 0 20px;
+  overflow-x: auto;
+  color: var(--text);
+}
+.lsn-math.inline {
+  display: inline;
+  margin: 0;
+}
 .lsn-quiz {
   margin: 0 0 22px;
   border: 1px solid var(--border);

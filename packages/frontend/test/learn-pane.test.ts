@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderLearn } from '../src/panes/learn/learn-pane'
 import type { SpeechPort } from '../src/adapters/speech/speech.adapter'
+import { PlainMath } from '../src/adapters/katex/math.adapter'
 import type { Lesson } from '@saathi/domain'
 
 const LESSON: Lesson = {
@@ -91,5 +92,27 @@ describe('TC-10.2 — Learn pane', () => {
     renderLearn(host)
     expect(host.querySelector('.lsn-title')?.textContent).toBe('Functions in JavaScript')
     expect(host.querySelectorAll('.lsn-quiz').length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('TC-11.2.1 — renders a math block via KaTeX (default port)', () => {
+    const lesson: Lesson = {
+      title: 'Math',
+      blocks: [{ kind: 'math', tex: 'a^2+b^2=c^2', display: true }],
+    }
+    renderLearn(host, { lesson })
+    const mathEl = host.querySelector('.lsn-math')
+    expect(mathEl).toBeTruthy()
+    expect(mathEl?.querySelector('.katex')).toBeTruthy()
+  })
+
+  it('TC-11.2.2 — injected PlainMath fallback shows escaped source', () => {
+    const lesson: Lesson = {
+      title: 'Math',
+      blocks: [{ kind: 'math', tex: 'x<y', display: false }],
+    }
+    renderLearn(host, { lesson, math: new PlainMath() })
+    const mathEl = host.querySelector('.lsn-math')
+    expect(mathEl?.classList.contains('inline')).toBe(true)
+    expect(mathEl?.innerHTML).toContain('x&lt;y')
   })
 })

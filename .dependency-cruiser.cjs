@@ -37,14 +37,19 @@ module.exports = {
       comment: 'Domain is the pure core — no Electron, no other layers, no vendor libs.',
       severity: 'error',
       from: { path: '^packages/domain' },
-      to: { path: '^electron($|/)|^packages/(backend|frontend|desktop)|node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist)' },
+      to: { path: '^electron($|/)|^packages/(backend|frontend|desktop)|node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex)' },
     },
     {
       name: 'vendor-only-in-adapter',
-      comment: 'Wrapper Rule: ExcelJS/docx/pptxgenjs/pdf-lib/pdfjs-dist only inside backend/adapters (tests exempt).',
+      comment:
+        'Wrapper Rule: backend vendors (exceljs/docx/pptxgenjs/pdf-lib/pdfjs-dist) only in backend/adapters; ' +
+        'frontend render vendors (katex) only in frontend/src/adapters (tests exempt).',
       severity: 'error',
-      from: { path: '^packages', pathNot: '^packages/backend/src/adapters/|/test/' },
-      to: { path: 'node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist)|^(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist)($|/)' },
+      from: {
+        path: '^packages',
+        pathNot: '^packages/backend/src/adapters/|^packages/frontend/src/adapters/|/test/',
+      },
+      to: { path: 'node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex)|^(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex)($|/)' },
     },
     {
       name: 'no-circular',

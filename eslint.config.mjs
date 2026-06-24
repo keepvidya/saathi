@@ -14,13 +14,35 @@ export default tseslint.config(
   },
   {
     // Frontend (UI) must never import Electron or the backend — only the bridge + shared/domain types.
+    // Vendor render libs are wrapped under frontend/src/adapters (frontend Wrapper-Rule, reset below).
     files: ['packages/frontend/src/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           paths: [{ name: 'electron', message: 'Frontend must use window.saathi via the bridge.' }],
-          patterns: ['@saathi/backend', '@saathi/backend/*'],
+          // `^katex(/|$)` anchors to the package import — it must NOT match our own
+          // relative `adapters/katex/…` path (which doesn't start with "katex").
+          patterns: [
+            { group: ['@saathi/backend', '@saathi/backend/*'], message: 'Frontend talks over IPC, not the backend.' },
+            { regex: '^katex(/|$)', message: 'Wrap KaTeX in frontend/src/adapters, not here.' },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The frontend Wrapper-Rule: vendor render libs (katex, …) may be imported ONLY inside
+    // frontend/src/adapters (resets the rule above; Electron + backend stay forbidden).
+    files: ['packages/frontend/src/adapters/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [{ name: 'electron', message: 'Frontend must use window.saathi via the bridge.' }],
+          patterns: [
+            { group: ['@saathi/backend', '@saathi/backend/*'], message: 'Frontend talks over IPC, not the backend.' },
+          ],
         },
       ],
     },

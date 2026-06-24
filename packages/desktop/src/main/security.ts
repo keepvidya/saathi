@@ -9,7 +9,10 @@ export const WINDOW_SECURITY = {
   webSecurity: true,
 } as const
 
-/** Production Content-Security-Policy (applied via response headers when packaged). */
+/**
+ * Production Content-Security-Policy (applied via response headers when packaged).
+ * `font-src 'self'` lets locally-bundled fonts (e.g. KaTeX woff2) load under file://.
+ */
 export const CSP =
   "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-  "font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'"
+  "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'"

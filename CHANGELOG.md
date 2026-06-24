@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M8b Learn · Math (KaTeX) + the frontend Wrapper-Rule
+- **Math in lessons**: a `math` block in the Lesson model (`@saathi/domain`, additive) rendered by **KaTeX** behind a `MathRenderPort` (`KatexMath`, with a deterministic `PlainMath` fallback). Inline + display modes; malformed TeX degrades to readable text (`throwOnError:false`); `lessonPlainText` skips math (not narration).
+- **Frontend Wrapper-Rule established (ADR-0005)**: vendor *render* libraries may be imported **only** inside `packages/frontend/src/adapters/**`, behind a port — enforced by ESLint (anchored `^katex(/|$)` so it can't catch our own folder) + dependency-cruiser (`vendor-only-in-adapter` now exempts `frontend/src/adapters`, `domain-stays-pure` forbids katex). KaTeX's CSS is imported inside its adapter, so it ships only when bundled. CSP gains **`font-src 'self'`** so KaTeX's woff2 fonts load when packaged.
+- Tests: KaTeX adapter units (display/inline render, malformed no-throw, `PlainMath` escape), domain math-block units, Learn-pane math integration (KaTeX + injected fallback), e2e (typeset formula visible). 148 unit/int + 11 e2e green; coverage met (math.adapter.ts 100%). Screenshots: learn-math light + dark.
+- **Still deferred → later slices:** Shiki (code highlighting), Mermaid (diagrams), Pyodide (runnable Python), Piper TTS — each a wrapped frontend adapter using the convention this slice establishes.
+
 ### Added — M8 Learn (lessons + quiz engine + read-aloud)
 - **Pure Lesson model + deterministic quiz engine** (`@saathi/domain/learn`): a `Lesson` of typed blocks (`prose` / `code` / `quiz`); `gradeQuiz` (correct ⇔ `chosen === answer`) and `scoreLesson` (correct / total / answered) — **correctness is decided by our code, never a model** (DNA); `lessonPlainText` (narration for read-aloud / search) + `sampleLesson`.
 - **Learn pane** (`@saathi/frontend`): renders a lesson (prose via the XSS-safe `markdownToHtml`, code blocks, interactive quizzes), grades each answer with the engine, reveals the correct option + explanation, locks after answering, and shows a running **score**. **Read-aloud** via a wrapped **Web Speech** adapter (`SpeechPort`; `WebSpeech` + `SilentSpeech` fallback) — built-in browser API, no new dependency, no CSP change. Brand-locked light + dark (status green/red from the locked theme tokens).

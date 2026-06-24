@@ -83,3 +83,13 @@ describe('TC-10.1.4 — lessonPlainText is narration-ready', () => {
     expect(text).not.toMatch(/[*#`]/) // no markdown markers survive
   })
 })
+
+describe('TC-11.1 — math block (domain)', () => {
+  it('sampleLesson includes a math block', () => {
+    const math = sampleLesson().blocks.filter((b) => b.kind === 'math')
+    expect(math.length).toBeGreaterThanOrEqual(1)
+  })
+  it('lessonPlainText omits math TeX (not narration-friendly)', () => {
+    expect(lessonPlainText(sampleLesson())).not.toContain('\\pi') // the sample's formula
+  })
+})

@@ -9,6 +9,7 @@ import {
   type QuizBlock,
 } from '@saathi/domain'
 import { makeSpeech, type SpeechPort } from '../../adapters/speech/speech.adapter'
+import { KatexMath, type MathRenderPort } from '../../adapters/katex/math.adapter'
 
 const esc = (s: string): string =>
   s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string)
@@ -16,6 +17,7 @@ const esc = (s: string): string =>
 export interface LearnOptions {
   lesson?: Lesson
   speech?: SpeechPort
+  math?: MathRenderPort
 }
 
 /**
@@ -25,12 +27,18 @@ export interface LearnOptions {
 export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
   const lesson = opts.lesson ?? sampleLesson()
   const speech = opts.speech ?? makeSpeech()
+  const math = opts.math ?? new KatexMath()
   const answers = new Map<string, number>()
 
   const blockHtml = (block: LessonBlock, n: number): string => {
     if (block.kind === 'prose') return `<div class="lsn-prose">${markdownToHtml(block.markdown)}</div>`
     if (block.kind === 'code')
       return `<div class="lsn-code"><span class="lsn-lang">${esc(block.lang)}</span><pre><code>${esc(block.source)}</code></pre></div>`
+    if (block.kind === 'math') {
+      const display = block.display ?? true
+      const tag = display ? 'div' : 'span'
+      return `<${tag} class="lsn-math${display ? '' : ' inline'}">${math.toHtml(block.tex, display)}</${tag}>`
+    }
     return quizHtml(block, n)
   }
 

@@ -15,6 +15,13 @@ export interface CodeBlock {
   lang: string
   source: string
 }
+export interface MathBlock {
+  kind: 'math'
+  /** TeX source (e.g. `a^2+b^2=c^2`) */
+  tex: string
+  /** block (centred, own line) vs inline; defaults to block */
+  display?: boolean
+}
 export interface QuizBlock {
   kind: 'quiz'
   id: string
@@ -24,7 +31,7 @@ export interface QuizBlock {
   answer: number
   explain: string
 }
-export type LessonBlock = ProseBlock | CodeBlock | QuizBlock
+export type LessonBlock = ProseBlock | CodeBlock | MathBlock | QuizBlock
 
 export interface Lesson {
   title: string
@@ -123,8 +130,10 @@ export function sampleLesson(): Lesson {
       {
         kind: 'prose',
         markdown:
-          'A function that does not hit a `return` statement gives back `undefined`.',
+          'A function that does not hit a `return` statement gives back `undefined`. ' +
+          'Functions also power formulas — the area of a circle is:',
       },
+      { kind: 'math', tex: 'A = \\pi r^2', display: true },
       {
         kind: 'quiz',
         id: 'q2',

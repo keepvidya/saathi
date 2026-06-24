@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M11d Hardware check + Ollama/Shiva setup (onboarding, locked design)
+- **Onboarding redesigned to the locked prototype**: name → **how Saathi should think** → embedding. Step two **checks your computer** ("It checked your computer (15.6 GB RAM) — Lite fits well") and recommends **Ultra-Lite (1.5B)**, **Lite (7B)**, or **Heavy (cloud BYOK)**.
+- **The installer bundles neither Ollama nor Shiva.** For an offline mode, Saathi **pulls the matching Shiva model** (`shiva-nano:1.5b` / `shiva-chat:7b`) — **silently installing Ollama first if it's missing** (downloads the official `OllamaSetup.exe`, runs it silently) — with a live progress bar. Heavy mode takes a cloud key instead (stored encrypted). All hardware detection + Ollama install/pull happen in the **main process** only.
+- New `system:hardware` / `ollama:status` / `ollama:setup` (+ progress push) IPC + `bridge.setupControl`; `runMode` + `embedding` added to settings; `SHIVA_MODELS` map in shared.
+- Tests: onboarding integration (hardware check + recommendation; offline pulls the right Shiva tag; Heavy key path) with a mocked setup; e2e (the mode step with the real RAM check). 238 unit/int + 21 e2e green. Screenshots: onboarding (mode step) light + dark. The live install/pull runs on the user's machine (mock-tested in dev/CI).
+
 ### Added — M11c Packaging (Windows installer) + auto-update scaffold
 - **A real Windows installer**: `npm run package` builds a NSIS **`Saathi-Setup-<version>.exe`** via **electron-builder** (choose-folder, Start-menu shortcut). **Pyodide is `asar`-unpacked** so runnable Python works in the installed app; **`electron-updater`** is wired (packaged-only, guarded) against a GitHub release feed (releases publish in M12).
 - Workspace packaging fixes: pin `electronVersion` (electron is hoisted); `npmRebuild:false` (electron-builder's dep-rebuild was pruning the hoisted root `node_modules`); `@saathi/*` moved to **devDependencies** (they're bundled into `out/` and symlink outside the app, so they must not be packaged).

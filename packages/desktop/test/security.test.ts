@@ -30,6 +30,8 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
       'memory',
       'settings',
       'secrets',
+      'system',
+      'ollama',
     ])
     expect(Object.keys(api.app)).toEqual(['getInfo', 'firstRun'])
     expect(Object.keys(api.sheet)).toEqual(['exportXlsx'])
@@ -55,6 +57,8 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
     expect(Object.keys(api.memory)).toEqual(['remember', 'recall', 'list', 'forget'])
     expect(Object.keys(api.settings)).toEqual(['get', 'set'])
     expect(Object.keys(api.secrets)).toEqual(['set', 'has', 'clear']) // no `get` — keys stay in main
+    expect(Object.keys(api.system)).toEqual(['hardware'])
+    expect(Object.keys(api.ollama)).toEqual(['status', 'setup', 'onProgress'])
 
     // Exercise every method → each maps to its channel, and never leaks raw ipc.
     void api.app.getInfo()
@@ -89,6 +93,10 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
     void api.secrets.set('k', 'v')
     void api.secrets.has('k')
     void api.secrets.clear('k')
+    void api.system.hardware()
+    void api.ollama.status()
+    void api.ollama.setup('shiva-chat:7b')
+    api.ollama.onProgress(() => {})
     expect(invoke).toHaveBeenCalledWith(IPC.browserNavigate, 1, 'x')
     expect(invoke).toHaveBeenCalledWith(IPC.browserToggleShields)
     expect(invoke).toHaveBeenCalledWith(IPC.memoryRemember, 'note')

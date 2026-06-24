@@ -6,8 +6,19 @@ import type {
   ViewBounds,
   MemoryItem,
   AppSettings,
+  HardwareInfo,
+  OllamaStatus,
+  SetupProgress,
 } from '@saathi/shared'
 import { defaultSettings } from '@saathi/shared'
+
+/** Hardware check + Ollama/Shiva setup surface for onboarding. */
+export interface SetupControl {
+  hardware(): Promise<HardwareInfo>
+  ollamaStatus(): Promise<OllamaStatus>
+  ollamaSetup(model: string): Promise<void>
+  onSetupProgress(cb: (p: SetupProgress) => void): () => void
+}
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
 /** The memory surface the Memory pane depends on (host or a test stub). */
@@ -59,6 +70,12 @@ type SaathiWindow = {
       set(name: string, value: string): Promise<void>
       has(name: string): Promise<boolean>
       clear(name: string): Promise<void>
+    }
+    system?: { hardware(): Promise<HardwareInfo> }
+    ollama?: {
+      status(): Promise<OllamaStatus>
+      setup(model: string): Promise<void>
+      onProgress(cb: (p: SetupProgress) => void): () => void
     }
   }
 }
@@ -188,9 +205,30 @@ function settingsControl(): SettingsControl {
   }
 }
 
+/** Hardware + Ollama/Shiva setup. Host-backed; a sensible offline default otherwise. */
+function setupControl(): SetupControl {
+  const w = globalThis as unknown as SaathiWindow
+  const s = w.saathi
+  if (s?.system && s?.ollama) {
+    return {
+      hardware: () => s.system!.hardware(),
+      ollamaStatus: () => s.ollama!.status(),
+      ollamaSetup: (model) => s.ollama!.setup(model),
+      onSetupProgress: (cb) => s.ollama!.onProgress(cb),
+    }
+  }
+  return {
+    hardware: async () => ({ totalMemGB: 0, cores: 0, recommend: 'lite' }),
+    ollamaStatus: async () => ({ installed: false, running: false, models: [] }),
+    ollamaSetup: async () => {},
+    onSetupProgress: () => () => {},
+  }
+}
+
 export const bridge = {
   getAppInfo,
   firstRun,
+  setupControl,
   exportXlsx,
   exportDocx,
   exportPdf,

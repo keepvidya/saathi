@@ -10,6 +10,7 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
     expect(Object.keys(bridge)).toEqual([
       'getAppInfo',
       'firstRun',
+      'setupControl',
       'exportXlsx',
       'exportDocx',
       'exportPdf',

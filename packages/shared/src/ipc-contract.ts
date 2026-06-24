@@ -34,6 +34,11 @@ export const IPC = {
   secretSet: 'secret:set',
   secretHas: 'secret:has',
   secretClear: 'secret:clear',
+  systemHardware: 'system:hardware',
+  ollamaStatus: 'ollama:status',
+  ollamaSetup: 'ollama:setup',
+  /** push: main → renderer, Ollama/Shiva setup progress */
+  ollamaSetupProgress: 'ollama:setupProgress',
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]
@@ -79,13 +84,47 @@ export interface MemoryItem {
   createdAt: number
 }
 
+/** Run mode → local Shiva model (or cloud BYOK). */
+export type RunMode = 'ultra' | 'lite' | 'heavy'
+
+/** The Ollama model tag for each offline run mode (matches the locked design). */
+export const SHIVA_MODELS: Record<'ultra' | 'lite', string> = {
+  ultra: 'shiva-nano:1.5b',
+  lite: 'shiva-chat:7b',
+}
+
 /** Non-secret app configuration (API keys are stored separately + encrypted). */
 export interface AppSettings {
   userName: string
   llmMode: 'offline' | 'cloud'
+  runMode: RunMode
+  embedding: 'local' | 'cloud'
   cloudProvider: string
   searchProvider: 'none' | 'serper' | 'brave'
   onboarded: boolean
+}
+
+/** Detected machine specs — drives the onboarding run-mode recommendation. */
+export interface HardwareInfo {
+  totalMemGB: number
+  cores: number
+  /** the run mode that fits this machine */
+  recommend: RunMode
+}
+
+/** Whether Ollama is installed/running locally, and which models it has. */
+export interface OllamaStatus {
+  installed: boolean
+  running: boolean
+  models: string[]
+}
+
+/** A step in the Ollama/Shiva setup (pushed to the renderer during onboarding). */
+export interface SetupProgress {
+  phase: 'install-ollama' | 'pull-model' | 'done' | 'error'
+  message: string
+  /** 0–100 when known */
+  percent?: number
 }
 
 /** Names of the secrets held (encrypted) by the main-process SecretStore. */
@@ -97,6 +136,8 @@ export function defaultSettings(): AppSettings {
   return {
     userName: '',
     llmMode: 'offline',
+    runMode: 'lite',
+    embedding: 'local',
     cloudProvider: 'openai',
     searchProvider: 'none',
     onboarded: false,

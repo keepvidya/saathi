@@ -17,6 +17,8 @@ describe('TC-20.1.1 — JsonSettings defaults / set / persist', () => {
     expect(new JsonSettings(file).get()).toEqual({
       userName: '',
       llmMode: 'offline',
+      runMode: 'lite',
+      embedding: 'local',
       cloudProvider: 'openai',
       searchProvider: 'none',
       onboarded: false,

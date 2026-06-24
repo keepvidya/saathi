@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@saathi/shared": "0.1.0",
-    "katex": "^0.16.47"
+    "katex": "^0.16.47",
+    "shiki": "^1.29.2"
   }
 }

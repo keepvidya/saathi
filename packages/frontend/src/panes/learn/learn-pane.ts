@@ -10,6 +10,7 @@ import {
 } from '@saathi/domain'
 import { makeSpeech, type SpeechPort } from '../../adapters/speech/speech.adapter'
 import { KatexMath, type MathRenderPort } from '../../adapters/katex/math.adapter'
+import { ShikiHighlight, type CodeHighlightPort } from '../../adapters/shiki/highlight.adapter'
 
 const esc = (s: string): string =>
   s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string)
@@ -18,6 +19,7 @@ export interface LearnOptions {
   lesson?: Lesson
   speech?: SpeechPort
   math?: MathRenderPort
+  highlight?: CodeHighlightPort
 }
 
 /**
@@ -28,12 +30,14 @@ export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
   const lesson = opts.lesson ?? sampleLesson()
   const speech = opts.speech ?? makeSpeech()
   const math = opts.math ?? new KatexMath()
+  const highlighter = opts.highlight ?? new ShikiHighlight()
   const answers = new Map<string, number>()
 
+  let codeSeq = 0
   const blockHtml = (block: LessonBlock, n: number): string => {
     if (block.kind === 'prose') return `<div class="lsn-prose">${markdownToHtml(block.markdown)}</div>`
     if (block.kind === 'code')
-      return `<div class="lsn-code"><span class="lsn-lang">${esc(block.lang)}</span><pre><code>${esc(block.source)}</code></pre></div>`
+      return `<div class="lsn-code" data-code="${codeSeq++}"><span class="lsn-lang">${esc(block.lang)}</span><div class="lsn-code-body"><pre><code>${esc(block.source)}</code></pre></div></div>`
     if (block.kind === 'math') {
       const display = block.display ?? true
       const tag = display ? 'div' : 'span'
@@ -112,6 +116,22 @@ export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
     speech.speak(lessonPlainText(lesson))
   })
   host.querySelector<HTMLElement>('#lsn-stop')!.addEventListener('click', () => speech.stop())
+
+  // Progressive enhancement: plain code is already on screen; swap in highlighted
+  // markup as the (async) highlighter resolves. Failures leave the plain fallback.
+  const codeBlocks = lesson.blocks.filter((b): b is Extract<LessonBlock, { kind: 'code' }> => b.kind === 'code')
+  codeBlocks.forEach((block, i) => {
+    const bodyEl = host.querySelector<HTMLElement>(`.lsn-code[data-code="${i}"] .lsn-code-body`)
+    if (!bodyEl) return
+    void highlighter
+      .highlight(block.source, block.lang)
+      .then((html) => {
+        bodyEl.innerHTML = html
+      })
+      .catch(() => {
+        /* keep the plain fallback already shown */
+      })
+  })
 
   drawScore()
 }

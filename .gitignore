@@ -8,3 +8,4 @@ dist-types
 .vite
 test-results
 playwright-report
+release

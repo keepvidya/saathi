@@ -23,9 +23,12 @@ import {
   type ViewBounds,
   type AppSettings,
 } from '@saathi/shared'
+import updaterPkg from 'electron-updater'
 import { WINDOW_SECURITY, CSP } from './security'
 import { BrowserTabs } from './browser-tabs'
 import { SecretStore } from './secret-store'
+
+const { autoUpdater } = updaterPkg
 
 const isDev = !!process.env.ELECTRON_RENDERER_URL
 
@@ -251,6 +254,11 @@ void app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+  // Auto-update (packaged builds only; the release feed is published by CI in M12).
+  if (app.isPackaged) {
+    autoUpdater.autoDownload = true
+    void autoUpdater.checkForUpdatesAndNotify().catch(() => {})
+  }
 })
 
 app.on('window-all-closed', () => {

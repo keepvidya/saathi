@@ -1,0 +1,49 @@
+appId: com.keepvidya.saathi
+productName: Saathi
+copyright: © Keepvidya
+# electron is hoisted to the workspace root, so pin the version explicitly.
+electronVersion: 33.4.11
+# Don't let electron-builder rebuild/prune deps — in an npm workspace that step
+# prunes the hoisted root node_modules (removing electron-builder's own helpers).
+# Nothing here is a native addon, so there's nothing to rebuild.
+npmRebuild: false
+nodeGypRebuild: false
+buildDependenciesFromSource: false
+
+directories:
+  output: release
+  buildResources: build
+
+# electron-vite emits the app into out/. node_modules (the externalized vendors)
+# are collected automatically from the workspace.
+files:
+  - out/**/*
+  - package.json
+  # The @saathi/* workspace packages are bundled into out/ by electron-vite and
+  # symlink to sibling dirs outside this app — exclude them from packaging.
+  - '!node_modules/@saathi/**'
+  - '!node_modules/@saathi'
+
+# Pyodide ships WASM + a Python stdlib zip that loadPyodide() reads from disk at
+# runtime — it must NOT be packed inside the asar (M8e / runnable Python).
+asarUnpack:
+  - '**/node_modules/pyodide/**'
+
+win:
+  target:
+    - nsis
+  # (a branded .ico can be dropped at build/icon.ico later; default icon for now)
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  artifactName: Saathi-Setup-${version}.${ext}
+  shortcutName: Saathi
+
+# Update feed for electron-updater (releases are published by CI in M12).
+publish:
+  provider: github
+  owner: keepvidya
+  repo: saathi

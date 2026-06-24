@@ -4,6 +4,11 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M11c Packaging (Windows installer) + auto-update scaffold
+- **A real Windows installer**: `npm run package` builds a NSIS **`Saathi-Setup-<version>.exe`** via **electron-builder** (choose-folder, Start-menu shortcut). **Pyodide is `asar`-unpacked** so runnable Python works in the installed app; **`electron-updater`** is wired (packaged-only, guarded) against a GitHub release feed (releases publish in M12).
+- Workspace packaging fixes: pin `electronVersion` (electron is hoisted); `npmRebuild:false` (electron-builder's dep-rebuild was pruning the hoisted root `node_modules`); `@saathi/*` moved to **devDependencies** (they're bundled into `out/` and symlink outside the app, so they must not be packaged).
+- **Verified**: the installer builds (~114 MB); a packaged smoke test of `win-unpacked/Saathi.exe` confirms it **boots → onboarding → shell → runs Python** (the Pyodide asar-unpack is correct). All 21 dev e2e still pass (unpackaged → shell, no updater). The `.exe` is unsigned for now (SmartScreen warns) — signing + a branded icon are follow-ups.
+
 ### Added — M11b First-run onboarding wizard
 - **A short, branded first-run wizard**: *"Hi — I'm Saathi… what should I call you?"* → **how the AI runs** (Offline = local Ollama + Shiva, or Cloud BYOK + key) → **web search** (None / Serper / Brave + key) → done. It writes into the M11a settings, storing any keys **encrypted**, then mounts the app — and won't ask again.
 - **First-run is gated in main**: `app:firstRun` returns true only in a **packaged** build that isn't onboarded yet (or with `--force-onboarding`), so dev and all existing e2e get the shell directly — **no spec changes, all 20 prior e2e still pass**. `startApp(root)` boots the wizard-or-shell; the renderer entry now calls it.

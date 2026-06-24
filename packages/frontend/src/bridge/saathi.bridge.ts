@@ -9,6 +9,7 @@ type SaathiWindow = {
     slide?: { exportPptx(data: DeckData): Promise<ExportResult> }
     llm?: { narrate(p: NarratePrompt): Promise<string[]> }
     chat?: { reply(messages: ChatMessage[]): Promise<string> }
+    pdf?: { extractText(bytes: Uint8Array): Promise<string> }
   }
 }
 
@@ -61,4 +62,20 @@ async function chatReply(messages: ChatMessage[]): Promise<string> {
   return ''
 }
 
-export const bridge = { getAppInfo, exportXlsx, exportDocx, exportPdf, exportPptx, narrate, chatReply }
+/** Extract text from PDF bytes via the host (pdf.js). Returns '' when unavailable. */
+async function extractPdfText(bytes: Uint8Array): Promise<string> {
+  const w = globalThis as unknown as SaathiWindow
+  if (w.saathi?.pdf?.extractText) return w.saathi.pdf.extractText(bytes)
+  return ''
+}
+
+export const bridge = {
+  getAppInfo,
+  exportXlsx,
+  exportDocx,
+  exportPdf,
+  exportPptx,
+  narrate,
+  chatReply,
+  extractPdfText,
+}

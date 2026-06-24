@@ -30,6 +30,10 @@ export function buildApi(invoke: Invoke) {
       reply: (messages: ChatMessage[]): Promise<string> =>
         invoke(IPC.chatReply, messages) as Promise<string>,
     },
+    pdf: {
+      extractText: (bytes: Uint8Array): Promise<string> =>
+        invoke(IPC.pdfExtractText, bytes) as Promise<string>,
+    },
   }
 }
 

@@ -16,9 +16,14 @@ import {
   type DiagramRenderPort,
   type DiagramTheme,
 } from '../../adapters/mermaid/diagram.adapter'
+import { bridge } from '../../bridge/saathi.bridge'
+import type { PyRunResult } from '@saathi/shared'
 
 const esc = (s: string): string =>
   s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string)
+
+/** Runs code (Python) and returns its output. Defaults to the host bridge. */
+export type RunFn = (code: string) => Promise<PyRunResult>
 
 export interface LearnOptions {
   lesson?: Lesson
@@ -26,6 +31,7 @@ export interface LearnOptions {
   math?: MathRenderPort
   highlight?: CodeHighlightPort
   diagram?: DiagramRenderPort
+  run?: RunFn
 }
 
 /**
@@ -38,14 +44,20 @@ export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
   const math = opts.math ?? new KatexMath()
   const highlighter = opts.highlight ?? new ShikiHighlight()
   const diagrammer = opts.diagram ?? new MermaidDiagram()
+  const runCode = opts.run ?? bridge.runPython
   const answers = new Map<string, number>()
 
   let codeSeq = 0
   let diagSeq = 0
   const blockHtml = (block: LessonBlock, n: number): string => {
     if (block.kind === 'prose') return `<div class="lsn-prose">${markdownToHtml(block.markdown)}</div>`
-    if (block.kind === 'code')
-      return `<div class="lsn-code" data-code="${codeSeq++}"><span class="lsn-lang">${esc(block.lang)}</span><div class="lsn-code-body"><pre><code>${esc(block.source)}</code></pre></div></div>`
+    if (block.kind === 'code') {
+      const i = codeSeq++
+      const runUi = block.runnable
+        ? `<div class="lsn-run-bar"><button class="lsn-run" data-run="${i}">▶ Run</button></div><pre class="lsn-run-out" data-out="${i}" hidden></pre>`
+        : ''
+      return `<div class="lsn-code" data-code="${i}"><span class="lsn-lang">${esc(block.lang)}</span><div class="lsn-code-body"><pre><code>${esc(block.source)}</code></pre></div>${runUi}</div>`
+    }
     if (block.kind === 'math') {
       const display = block.display ?? true
       const tag = display ? 'div' : 'span'
@@ -141,6 +153,27 @@ export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
       .catch(() => {
         /* keep the plain fallback already shown */
       })
+
+    // Runnable snippets: Run → execute (host Pyodide) → show real output.
+    if (!block.runnable) return
+    const runBtn = host.querySelector<HTMLButtonElement>(`.lsn-run[data-run="${i}"]`)
+    const outEl = host.querySelector<HTMLElement>(`.lsn-run-out[data-out="${i}"]`)
+    if (!runBtn || !outEl) return
+    runBtn.addEventListener('click', () => {
+      void (async () => {
+        runBtn.disabled = true
+        const label = runBtn.textContent
+        runBtn.textContent = 'Running…'
+        outEl.hidden = false
+        outEl.classList.remove('err')
+        outEl.textContent = 'Running…'
+        const result = await runCode(block.source)
+        outEl.textContent = result.output || (result.ok ? '(no output)' : 'Error')
+        outEl.classList.toggle('err', !result.ok)
+        runBtn.textContent = label
+        runBtn.disabled = false
+      })()
+    })
   })
 
   // Diagrams: progressive enhancement + theme-reactive re-render. Mermaid bakes

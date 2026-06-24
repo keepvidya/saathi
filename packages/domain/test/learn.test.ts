@@ -103,3 +103,11 @@ describe('TC-13.1 — diagram block (domain)', () => {
     expect(lessonPlainText(sampleLesson())).not.toContain('graph')
   })
 })
+
+describe('TC-14.1 — runnable code block (domain)', () => {
+  it('sampleLesson includes a runnable Python block', () => {
+    const runnable = sampleLesson().blocks.filter((b) => b.kind === 'code' && b.runnable)
+    expect(runnable.length).toBeGreaterThanOrEqual(1)
+    expect(runnable[0]).toMatchObject({ lang: 'python' })
+  })
+})

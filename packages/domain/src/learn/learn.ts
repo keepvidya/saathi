@@ -14,6 +14,8 @@ export interface CodeBlock {
   kind: 'code'
   lang: string
   source: string
+  /** when true (Python only), the learner can Run it and see real output */
+  runnable?: boolean
 }
 export interface MathBlock {
   kind: 'math'
@@ -144,6 +146,16 @@ export function sampleLesson(): Lesson {
         kind: 'diagram',
         title: 'How a function call flows',
         code: 'graph LR\n  In[Inputs] --> Fn[Function body]\n  Fn --> Out[Return value]',
+      },
+      {
+        kind: 'prose',
+        markdown: 'Try it yourself — the same idea in **Python**. Press **Run** to execute it on your machine:',
+      },
+      {
+        kind: 'code',
+        lang: 'python',
+        runnable: true,
+        source: 'def add(a, b):\n    return a + b\n\nprint(add(2, 3))',
       },
       {
         kind: 'quiz',

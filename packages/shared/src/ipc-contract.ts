@@ -11,6 +11,7 @@ export const IPC = {
   llmNarrate: 'llm:narrate',
   chatReply: 'chat:reply',
   pdfExtractText: 'pdf:extractText',
+  pyRun: 'py:run',
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]
@@ -25,4 +26,10 @@ export interface AppInfo {
 export interface ExportResult {
   saved: boolean
   path?: string
+}
+
+/** Result of running a code snippet: success flag + combined stdout/stderr (or error). */
+export interface PyRunResult {
+  ok: boolean
+  output: string
 }

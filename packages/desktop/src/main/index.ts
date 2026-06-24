@@ -8,11 +8,12 @@ import {
   PptxDeckExport,
   PdfLibDocExport,
   PdfJsRead,
+  PyodideRun,
   OllamaLlm,
   OllamaChat,
 } from '@saathi/backend'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
-import { IPC, type AppInfo, type ExportResult } from '@saathi/shared'
+import { IPC, type AppInfo, type ExportResult, type PyRunResult } from '@saathi/shared'
 import { WINDOW_SECURITY, CSP } from './security'
 
 const isDev = !!process.env.ELECTRON_RENDERER_URL
@@ -120,6 +121,13 @@ const pdfRead = new PdfJsRead()
 ipcMain.handle(IPC.pdfExtractText, async (_e, bytes: unknown): Promise<string> => {
   if (!(bytes instanceof Uint8Array) && !Array.isArray(bytes)) return ''
   return pdfRead.extractText(bytes instanceof Uint8Array ? bytes : Uint8Array.from(bytes as number[]))
+})
+
+// Run a Python snippet locally (Pyodide in main — ADR-0006). Lazy-loads on first run.
+const pyRun = new PyodideRun()
+ipcMain.handle(IPC.pyRun, async (_e, code: unknown): Promise<PyRunResult> => {
+  if (typeof code !== 'string') return { ok: false, output: 'Invalid code.' }
+  return pyRun.run(code)
 })
 
 void app.whenReady().then(() => {

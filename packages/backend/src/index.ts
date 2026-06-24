@@ -11,3 +11,5 @@ export { OllamaLlm, type OllamaConfig } from './adapters/ollama/ollama-llm.adapt
 export { OllamaChat, type OllamaChatConfig } from './adapters/ollama/ollama-chat.adapter'
 export type { PdfReadPort } from './ports/pdf-read.port'
 export { PdfJsRead } from './adapters/pdfjs/pdf-read.adapter'
+export type { PyRunPort, PyRunResult } from './ports/py-run.port'
+export { PyodideRun } from './adapters/pyodide/py-run.adapter'

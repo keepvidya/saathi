@@ -1366,6 +1366,43 @@ html[data-theme='dark'] .lsn-code .shiki,
 html[data-theme='dark'] .lsn-code .shiki span {
   color: var(--shiki-dark);
 }
+.lsn-run-bar {
+  display: flex;
+  padding: 0 14px 12px;
+}
+.lsn-run {
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.lsn-run:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+.lsn-run:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.lsn-run-out {
+  margin: 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.lsn-run-out.err {
+  color: var(--error);
+}
 .lsn-math {
   margin: 0 0 20px;
   overflow-x: auto;

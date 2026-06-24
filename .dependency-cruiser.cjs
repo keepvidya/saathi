@@ -37,7 +37,7 @@ module.exports = {
       comment: 'Domain is the pure core — no Electron, no other layers, no vendor libs.',
       severity: 'error',
       from: { path: '^packages/domain' },
-      to: { path: '^electron($|/)|^packages/(backend|frontend|desktop)|node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid)' },
+      to: { path: '^electron($|/)|^packages/(backend|frontend|desktop)|node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid|pyodide)' },
     },
     {
       name: 'vendor-only-in-adapter',
@@ -49,7 +49,7 @@ module.exports = {
         path: '^packages',
         pathNot: '^packages/backend/src/adapters/|^packages/frontend/src/adapters/|/test/',
       },
-      to: { path: 'node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid)|^(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid)($|/)' },
+      to: { path: 'node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid|pyodide)|^(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid|pyodide)($|/)' },
     },
     {
       name: 'no-circular',

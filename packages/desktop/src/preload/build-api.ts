@@ -1,4 +1,4 @@
-import { IPC, type AppInfo, type ExportResult } from '@saathi/shared'
+import { IPC, type AppInfo, type ExportResult, type PyRunResult } from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
 /** Pure API factory — testable without Electron. One method per IPC channel. */
@@ -33,6 +33,9 @@ export function buildApi(invoke: Invoke) {
     pdf: {
       extractText: (bytes: Uint8Array): Promise<string> =>
         invoke(IPC.pdfExtractText, bytes) as Promise<string>,
+    },
+    py: {
+      run: (code: string): Promise<PyRunResult> => invoke(IPC.pyRun, code) as Promise<PyRunResult>,
     },
   }
 }

@@ -22,6 +22,12 @@ export interface MathBlock {
   /** block (centred, own line) vs inline; defaults to block */
   display?: boolean
 }
+export interface DiagramBlock {
+  kind: 'diagram'
+  /** Mermaid definition (e.g. `graph TD; A-->B`) */
+  code: string
+  title?: string
+}
 export interface QuizBlock {
   kind: 'quiz'
   id: string
@@ -31,7 +37,7 @@ export interface QuizBlock {
   answer: number
   explain: string
 }
-export type LessonBlock = ProseBlock | CodeBlock | MathBlock | QuizBlock
+export type LessonBlock = ProseBlock | CodeBlock | MathBlock | DiagramBlock | QuizBlock
 
 export interface Lesson {
   title: string
@@ -134,6 +140,11 @@ export function sampleLesson(): Lesson {
           'Functions also power formulas — the area of a circle is:',
       },
       { kind: 'math', tex: 'A = \\pi r^2', display: true },
+      {
+        kind: 'diagram',
+        title: 'How a function call flows',
+        code: 'graph LR\n  In[Inputs] --> Fn[Function body]\n  Fn --> Out[Return value]',
+      },
       {
         kind: 'quiz',
         id: 'q2',

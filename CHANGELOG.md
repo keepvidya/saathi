@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M8d Learn · Diagrams (Mermaid)
+- **Mermaid diagrams** in lessons: a `diagram` block (`@saathi/domain`, additive) rendered by **Mermaid** behind a `DiagramRenderPort` (`MermaidDiagram`, lazy dynamic-import, `securityLevel:'strict'`; deterministic `PlainDiagram` fallback) — the third adapter under the frontend Wrapper-Rule (ADR-0005). Progressive enhancement: the definition shows immediately, then the SVG swaps in.
+- **Theme-reactive**: Mermaid bakes colours into the SVG, so the pane installs a `MutationObserver` on `<html data-theme>` and **re-renders** diagrams in the matching Mermaid theme (light→`neutral`, dark→`dark`) on a theme switch; the observer self-disconnects once the pane leaves the DOM. Invalid diagrams degrade to their source (no crash).
+- Tests: Mermaid adapter units (escape fallback, never-throws), Learn-pane integration (source→SVG swap, theme re-render, injected fallback), e2e (SVG renders + re-renders on switch). 160 unit/int + 13 e2e green; coverage met. Screenshots: learn-diagram light + dark.
+- **Still deferred → later slices:** Pyodide (runnable Python), Piper TTS.
+
 ### Added — M8c Learn · Code highlighting (Shiki)
 - **Syntax-highlighted lesson code** via **Shiki** behind a `CodeHighlightPort` (`ShikiHighlight`, with a deterministic `PlainHighlight` fallback) — the second adapter under the frontend Wrapper-Rule (ADR-0005), and the first **async** one. Code shows as plain text immediately and is **progressively** replaced by highlighted markup; dual-theme output (`--shiki-light`/`--shiki-dark` CSS vars) follows `data-theme` with **no re-render**. Unknown languages / failures degrade to plain code.
 - **No WASM, no CSP change**: uses Shiki's **JavaScript RegExp engine** and the fine-grained **`shiki/core`** API with explicit theme/lang imports (js/ts/python/json/bash/html/css) — keeping the renderer assets at ~2.7 MB instead of ~12 MB (the convenience `shiki` entry code-splits the entire grammar registry).

@@ -16,6 +16,7 @@
   "dependencies": {
     "@saathi/shared": "0.1.0",
     "katex": "^0.16.47",
+    "mermaid": "^11.15.0",
     "shiki": "^1.29.2"
   }
 }

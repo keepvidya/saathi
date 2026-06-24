@@ -11,6 +11,11 @@ import {
 import { makeSpeech, type SpeechPort } from '../../adapters/speech/speech.adapter'
 import { KatexMath, type MathRenderPort } from '../../adapters/katex/math.adapter'
 import { ShikiHighlight, type CodeHighlightPort } from '../../adapters/shiki/highlight.adapter'
+import {
+  MermaidDiagram,
+  type DiagramRenderPort,
+  type DiagramTheme,
+} from '../../adapters/mermaid/diagram.adapter'
 
 const esc = (s: string): string =>
   s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string)
@@ -20,6 +25,7 @@ export interface LearnOptions {
   speech?: SpeechPort
   math?: MathRenderPort
   highlight?: CodeHighlightPort
+  diagram?: DiagramRenderPort
 }
 
 /**
@@ -31,9 +37,11 @@ export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
   const speech = opts.speech ?? makeSpeech()
   const math = opts.math ?? new KatexMath()
   const highlighter = opts.highlight ?? new ShikiHighlight()
+  const diagrammer = opts.diagram ?? new MermaidDiagram()
   const answers = new Map<string, number>()
 
   let codeSeq = 0
+  let diagSeq = 0
   const blockHtml = (block: LessonBlock, n: number): string => {
     if (block.kind === 'prose') return `<div class="lsn-prose">${markdownToHtml(block.markdown)}</div>`
     if (block.kind === 'code')
@@ -43,6 +51,8 @@ export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
       const tag = display ? 'div' : 'span'
       return `<${tag} class="lsn-math${display ? '' : ' inline'}">${math.toHtml(block.tex, display)}</${tag}>`
     }
+    if (block.kind === 'diagram')
+      return `<div class="lsn-diagram" data-diagram="${diagSeq++}">${block.title ? `<div class="lsn-diagram-title">${esc(block.title)}</div>` : ''}<div class="lsn-diagram-body"><pre class="mmd-plain"><code>${esc(block.code)}</code></pre></div></div>`
     return quizHtml(block, n)
   }
 
@@ -132,6 +142,43 @@ export function renderLearn(host: HTMLElement, opts: LearnOptions = {}): void {
         /* keep the plain fallback already shown */
       })
   })
+
+  // Diagrams: progressive enhancement + theme-reactive re-render. Mermaid bakes
+  // colours into the SVG, so on a `data-theme` switch we re-render in the new theme.
+  const diagramBlocks = lesson.blocks.filter(
+    (b): b is Extract<LessonBlock, { kind: 'diagram' }> => b.kind === 'diagram',
+  )
+  const currentTheme = (): DiagramTheme =>
+    document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
+  const renderDiagrams = (theme: DiagramTheme): void => {
+    diagramBlocks.forEach((block, i) => {
+      const bodyEl = host.querySelector<HTMLElement>(`.lsn-diagram[data-diagram="${i}"] .lsn-diagram-body`)
+      if (!bodyEl) return
+      void diagrammer
+        .render(block.code, theme)
+        .then((svg) => {
+          bodyEl.innerHTML = svg
+        })
+        .catch(() => {
+          /* keep the plain fallback already shown */
+        })
+    })
+  }
+  if (diagramBlocks.length > 0) {
+    const root = host.querySelector<HTMLElement>('.learn')!
+    renderDiagrams(currentTheme())
+    const observer = new MutationObserver(() => {
+      if (!document.contains(root)) {
+        observer.disconnect() // pane navigated away — self-clean
+        return
+      }
+      renderDiagrams(currentTheme())
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+  }
 
   drawScore()
 }

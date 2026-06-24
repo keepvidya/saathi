@@ -60,6 +60,7 @@ export function buildApi(invoke: Invoke, on: On = () => () => {}) {
         invoke(IPC.browserSetBounds, rect) as Promise<void>,
       setVisible: (visible: boolean): Promise<void> =>
         invoke(IPC.browserSetVisible, visible) as Promise<void>,
+      toggleShields: (): Promise<void> => invoke(IPC.browserToggleShields) as Promise<void>,
       onEvent: (cb: (snap: BrowserSnapshot) => void): (() => void) =>
         on(IPC.browserEvent, (snap) => cb(snap as BrowserSnapshot)),
     },

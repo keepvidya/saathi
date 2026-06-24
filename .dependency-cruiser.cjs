@@ -52,6 +52,13 @@ module.exports = {
       to: { path: 'node_modules/(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid|pyodide)|^(exceljs|docx|pptxgenjs|pdf-lib|pdfjs-dist|katex|shiki|mermaid|pyodide)($|/)' },
     },
     {
+      name: 'adblock-only-in-host',
+      comment: 'Wrapper Rule: @ghostery/adblocker-electron only in desktop/main/ad-block.ts (it imports electron).',
+      severity: 'error',
+      from: { path: '^packages', pathNot: 'packages/desktop/src/main/ad-block\\.ts|/test/' },
+      to: { path: 'node_modules/@ghostery/adblocker-electron|^@ghostery/adblocker-electron($|/)' },
+    },
+    {
       name: 'no-circular',
       comment: 'No circular dependencies.',
       severity: 'error',

@@ -1,6 +1,7 @@
 import { WebContentsView, session, shell, type BrowserWindow } from 'electron'
-import { TabSet, parseAddress } from '@saathi/domain'
+import { TabSet, parseAddress, Shields } from '@saathi/domain'
 import type { BrowserSnapshot, ViewBounds } from '@saathi/shared'
+import { AdBlock } from './ad-block'
 
 const HOME = 'about:blank'
 
@@ -17,17 +18,47 @@ export class BrowserTabs {
   private visible = false
   // Web content is isolated from the app in its own session partition.
   private readonly tabSession = session.fromPartition('persist:browser-tabs')
+  private readonly shields = new Shields()
+  private readonly adblock: AdBlock
+  private emitScheduled = false
 
   constructor(
     private readonly win: BrowserWindow,
     private readonly push: (snap: BrowserSnapshot) => void,
-  ) {}
+  ) {
+    // Block ads/trackers on the tabs' session and tally each blocked request.
+    this.adblock = new AdBlock(() => {
+      this.shields.recordBlocked()
+      this.scheduleEmit() // coalesce bursts on tracker-heavy pages
+    })
+    this.adblock.enable(this.tabSession)
+  }
 
   private snapshot(): BrowserSnapshot {
-    return { tabs: this.tabs.list(), activeId: this.tabs.activeIdOrUndefined() }
+    return {
+      tabs: this.tabs.list(),
+      activeId: this.tabs.activeIdOrUndefined(),
+      shields: this.shields.state(),
+    }
   }
   private emit(): void {
     this.push(this.snapshot())
+  }
+  /** Throttle pushes from block bursts to ~1 per frame-ish. */
+  private scheduleEmit(): void {
+    if (this.emitScheduled) return
+    this.emitScheduled = true
+    setTimeout(() => {
+      this.emitScheduled = false
+      this.emit()
+    }, 150)
+  }
+
+  toggleShields(): void {
+    const on = this.shields.toggle()
+    if (on) this.adblock.enable(this.tabSession)
+    else this.adblock.disable(this.tabSession)
+    this.emit()
   }
 
   newTab(input?: string): BrowserSnapshot {

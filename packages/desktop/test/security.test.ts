@@ -46,6 +46,7 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
       'reload',
       'setBounds',
       'setVisible',
+      'toggleShields',
       'onEvent',
     ])
 
@@ -70,7 +71,9 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
     void api.browser.reload(1)
     void api.browser.setBounds({ x: 0, y: 0, width: 0, height: 0 })
     void api.browser.setVisible(true)
+    void api.browser.toggleShields()
     expect(invoke).toHaveBeenCalledWith(IPC.browserNavigate, 1, 'x')
+    expect(invoke).toHaveBeenCalledWith(IPC.browserToggleShields)
 
     // onEvent uses the push channel (defaults to a no-op unsubscribe in tests)
     expect(api.browser.onEvent(() => {})).toBeTypeOf('function')

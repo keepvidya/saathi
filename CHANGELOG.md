@@ -4,6 +4,13 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M9b Browser · Shields (ad/tracker blocking)
+- **Shields**: the browser now **blocks ads and trackers** by default, offline. A real engine (`@ghostery/adblocker-electron`) runs in the **main process** over a bundled curated filter list and cancels matching requests on the tabs' session; the toolbar shows a 🛡 **blocked-count** badge, and a click **toggles** Shields off/on.
+- The engine imports Electron, so — unlike pdf.js/Pyodide — it's wrapped in **`desktop/main/ad-block.ts`** (the only importer; the composition root), not `@saathi/backend`. The **filter list + the Shields tally live in `@saathi/domain`** (pure), so the same rules are **verified by the core `@ghostery/adblocker` engine in a unit test** (no electron) — blocks `doubleclick.net`/`google-analytics.com`, allows first-party scripts.
+- The browser snapshot gained `shields` state; a `browser:toggleShields` command flips it; block bursts are throttled (~150 ms) so tracker-heavy pages don't spam IPC. **No CSP change, no renderer involvement.**
+- Tests: `Shields` tally + filter-rules units, Browser-pane integration (badge count + toggle state), e2e (a `data:` page references a tracker → the count rises → toggle off). 192 unit/int + 16 e2e green; coverage met. Screenshots: browser-shields light + dark.
+- **Browser + Shields complete.** Deferred: full/auto-updating lists, cosmetic filters, per-site allowlist, history/bookmarks/downloads, SearXNG, agent-drive.
+
 ### Added — M9a Browser (multi-tab, WebContentsView)
 - **A real multi-tab browser** inside Saathi: open/switch/close tabs, back/forward/reload, and a combined **address + search** bar. Web content runs in sandboxed **WebContentsView**s in the **main process** (`contextIsolation`, `sandbox`, no `nodeIntegration`, isolated session) — never in the app renderer; `window.open`/`target=_blank` opens a new in-app tab, not a popup.
 - **Deterministic core** (`@saathi/domain/browser`): `parseAddress` decides URL vs search (scheme/localhost/IP/`host.tld` → navigate; otherwise → a DuckDuckGo search) and `TabSet` is the tab/active-tab state machine — *our code*, fully unit-tested.

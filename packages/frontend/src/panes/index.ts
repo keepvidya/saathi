@@ -2,6 +2,7 @@ import type { Pane, PaneId } from '../shell/router'
 import { renderOffice } from './office/office'
 import { renderChat } from './chat/chat-pane'
 import { renderKnowledge } from './knowledge/knowledge-pane'
+import { renderLearn } from './learn/learn-pane'
 
 /** Nav metadata (order = rail order). Settings is pinned separately in the shell footer. */
 export interface NavItem {
@@ -64,10 +65,11 @@ const BLURB: Record<PaneId, string> = {
   settings: 'Local by default. Providers, web search, memory, themes, updates.',
 }
 
-/** Real panes (Chat, Knowledge, Office); the rest are stubs until their milestone. */
+/** Real panes (Chat, Knowledge, Learn, Office); the rest are stubs until their milestone. */
 const REAL: Partial<Record<PaneId, Pane>> = {
   chat: { id: 'chat', label: 'Chat', render: renderChat },
   knowledge: { id: 'knowledge', label: 'Knowledge', render: renderKnowledge },
+  learn: { id: 'learn', label: 'Learn', render: renderLearn },
   office: { id: 'office', label: 'Office', render: renderOffice },
 }
 

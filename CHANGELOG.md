@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M10c Skills (reusable recipes)
+- **Skills** — a catalogue of named, reusable recipes (Calculator, Look up, Percentage, Tip splitter, Average). Each skill turns a small input into an **agent goal** and routes it through the **real** worker tools (calc / search), so the answer is **computed, not invented** — and the pane shows the goal it built (e.g. "15% of 240" → `(240 * 15 / 100)` → 36; "120, 4, 18" → `(120 * (1 + 18 / 100)) / 4` → 35.4). The stub Skills pane is now real.
+- **Pure core** (`@saathi/domain/agent/skills`): `Skill` + `SkillRegistry` + `BUILTIN_SKILLS` + `runSkill` (= `runDefaultAgent(skill.toGoal(input))`) — deterministic templates composing M10a, fully unit-tested; malformed input falls back to the raw text (no crash). No new vendor/IPC.
+- Tests: skill-registry + per-skill `toGoal`/`runSkill` units (exact answers), Skills-pane integration (catalogue + run shows answer + goal), e2e (run Tip/Percentage → computed answer). 227 unit/int + 19 e2e green; coverage met. Screenshots: skills light + dark.
+- **M10 (Agent + Skills + Memory) complete.** Deferred: user-defined / learned skills (persisted via Memory), the agent using memory as a tool, an LLM planner.
+
 ### Added — M10b Memory (full-text, local)
 - **Memory** — save private notes and **recall them by relevance**, locally. A new Memory pane: write a note, search your memory, see recent notes (newest first), forget one. Memory **persists** across restarts.
 - **Recall is computed by our own engine** (ADR-0007): a `MemoryPort` + a **`JsonMemory`** adapter (`@saathi/backend`) persists items to a JSON file and ranks recall with **the same TF-IDF retrieval as Knowledge** — no native module, no vendor, fully node-testable. (SQLite-FTS5 stays a clean future swap behind the same port — `better-sqlite3` is a native addon needing an Electron-ABI rebuild; deferred to packaging.) `memory:*` IPC + `bridge.memory`; the file lives in the app's userData dir.

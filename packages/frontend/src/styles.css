@@ -1344,6 +1344,28 @@ button {
   line-height: 1.6;
   color: var(--text);
 }
+/* Shiki output (progressive enhancement): keep the brand surface; map dual-theme
+   token CSS vars to the active data-theme so light/dark switch with no re-render. */
+.lsn-code .shiki {
+  margin: 0;
+  padding: 8px 14px 14px;
+  background: transparent !important;
+  overflow-x: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.lsn-code .shiki code {
+  background: none;
+}
+.lsn-code .shiki,
+.lsn-code .shiki span {
+  color: var(--shiki-light);
+}
+html[data-theme='dark'] .lsn-code .shiki,
+html[data-theme='dark'] .lsn-code .shiki span {
+  color: var(--shiki-dark);
+}
 .lsn-math {
   margin: 0 0 20px;
   overflow-x: auto;

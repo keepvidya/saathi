@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { renderLearn } from '../src/panes/learn/learn-pane'
+import { renderLearn, type LearnOptions } from '../src/panes/learn/learn-pane'
 import type { SpeechPort } from '../src/adapters/speech/speech.adapter'
 import { PlainMath } from '../src/adapters/katex/math.adapter'
+import { PlainHighlight, type CodeHighlightPort } from '../src/adapters/shiki/highlight.adapter'
 import type { Lesson } from '@saathi/domain'
 
 const LESSON: Lesson = {
@@ -29,8 +30,14 @@ const LESSON: Lesson = {
   ],
 }
 
+const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
+
 describe('TC-10.2 — Learn pane', () => {
   let host: HTMLElement
+  // Default to PlainHighlight so the unit tests never load Shiki (fast + deterministic).
+  const render = (opts: LearnOptions = {}): void =>
+    renderLearn(host, { highlight: new PlainHighlight(), ...opts })
+
   beforeEach(() => {
     document.body.innerHTML = ''
     host = document.createElement('div')
@@ -38,7 +45,7 @@ describe('TC-10.2 — Learn pane', () => {
   })
 
   it('TC-10.2.1 — renders prose, code, and quiz blocks', () => {
-    renderLearn(host, { lesson: LESSON })
+    render({ lesson: LESSON })
     expect(host.querySelector('.lsn-title')?.textContent).toBe('Test Lesson')
     expect(host.querySelector('.lsn-prose')?.innerHTML).toContain('<strong>bold</strong>')
     expect(host.querySelector('.lsn-code')?.textContent).toContain('const x = 1')
@@ -47,7 +54,7 @@ describe('TC-10.2 — Learn pane', () => {
   })
 
   it('TC-10.2.2 — correct answer: marks correct, explains, locks, scores', () => {
-    renderLearn(host, { lesson: LESSON })
+    render({ lesson: LESSON })
     const q = host.querySelector('.lsn-quiz[data-qid="a"]')!
     q.querySelectorAll<HTMLButtonElement>('.lsn-opt')[1].click() // the correct option
 
@@ -66,7 +73,7 @@ describe('TC-10.2 — Learn pane', () => {
   })
 
   it('TC-10.2.2 — wrong answer: marks wrong, reveals the correct option', () => {
-    renderLearn(host, { lesson: LESSON })
+    render({ lesson: LESSON })
     const q = host.querySelector('.lsn-quiz[data-qid="b"]')!
     q.querySelectorAll<HTMLButtonElement>('.lsn-opt')[1].click() // 'no' — wrong (answer=0)
 
@@ -78,7 +85,7 @@ describe('TC-10.2 — Learn pane', () => {
 
   it('TC-10.2.3 — Read aloud / Stop drive the injected speech port', () => {
     const speech: SpeechPort = { speak: vi.fn(), stop: vi.fn() }
-    renderLearn(host, { lesson: LESSON, speech })
+    render({ lesson: LESSON, speech })
 
     host.querySelector<HTMLElement>('#lsn-read')!.click()
     expect(speech.speak).toHaveBeenCalledOnce()
@@ -89,7 +96,7 @@ describe('TC-10.2 — Learn pane', () => {
   })
 
   it('uses sampleLesson when none is given', () => {
-    renderLearn(host)
+    render()
     expect(host.querySelector('.lsn-title')?.textContent).toBe('Functions in JavaScript')
     expect(host.querySelectorAll('.lsn-quiz').length).toBeGreaterThanOrEqual(2)
   })
@@ -99,7 +106,7 @@ describe('TC-10.2 — Learn pane', () => {
       title: 'Math',
       blocks: [{ kind: 'math', tex: 'a^2+b^2=c^2', display: true }],
     }
-    renderLearn(host, { lesson })
+    render({ lesson })
     const mathEl = host.querySelector('.lsn-math')
     expect(mathEl).toBeTruthy()
     expect(mathEl?.querySelector('.katex')).toBeTruthy()
@@ -110,9 +117,39 @@ describe('TC-10.2 — Learn pane', () => {
       title: 'Math',
       blocks: [{ kind: 'math', tex: 'x<y', display: false }],
     }
-    renderLearn(host, { lesson, math: new PlainMath() })
+    render({ lesson, math: new PlainMath() })
     const mathEl = host.querySelector('.lsn-math')
     expect(mathEl?.classList.contains('inline')).toBe(true)
     expect(mathEl?.innerHTML).toContain('x&lt;y')
+  })
+
+  it('TC-12.2.1 — code shows plain first, then is replaced by the highlighter', async () => {
+    const lesson: Lesson = {
+      title: 'Code',
+      blocks: [{ kind: 'code', lang: 'javascript', source: 'const x = 1' }],
+    }
+    const highlight: CodeHighlightPort = {
+      highlight: vi.fn().mockResolvedValue('<pre class="shiki"><code>HIGHLIGHTED</code></pre>'),
+    }
+    render({ lesson, highlight })
+
+    // synchronously: the plain fallback is on screen
+    expect(host.querySelector('.lsn-code-body')?.textContent).toContain('const x = 1')
+    expect(host.querySelector('.lsn-code .shiki')).toBeNull()
+
+    await flush()
+    // after the promise resolves: highlighted markup swapped in
+    expect(highlight.highlight).toHaveBeenCalledWith('const x = 1', 'javascript')
+    expect(host.querySelector('.lsn-code .shiki')?.textContent).toBe('HIGHLIGHTED')
+  })
+
+  it('TC-12.2.2 — PlainHighlight fallback keeps escaped code, no throw', async () => {
+    const lesson: Lesson = {
+      title: 'Code',
+      blocks: [{ kind: 'code', lang: 'js', source: '<b>x</b>' }],
+    }
+    render({ lesson, highlight: new PlainHighlight() })
+    await flush()
+    expect(host.querySelector('.lsn-code-body')?.innerHTML).toContain('&lt;b&gt;x&lt;/b&gt;')
   })
 })

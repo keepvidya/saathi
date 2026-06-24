@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M8c Learn · Code highlighting (Shiki)
+- **Syntax-highlighted lesson code** via **Shiki** behind a `CodeHighlightPort` (`ShikiHighlight`, with a deterministic `PlainHighlight` fallback) — the second adapter under the frontend Wrapper-Rule (ADR-0005), and the first **async** one. Code shows as plain text immediately and is **progressively** replaced by highlighted markup; dual-theme output (`--shiki-light`/`--shiki-dark` CSS vars) follows `data-theme` with **no re-render**. Unknown languages / failures degrade to plain code.
+- **No WASM, no CSP change**: uses Shiki's **JavaScript RegExp engine** and the fine-grained **`shiki/core`** API with explicit theme/lang imports (js/ts/python/json/bash/html/css) — keeping the renderer assets at ~2.7 MB instead of ~12 MB (the convenience `shiki` entry code-splits the entire grammar registry).
+- Tests: Shiki adapter units (dual-theme markup, unknown-lang no-throw, `PlainHighlight` escape), Learn-pane integration (plain-first then swap; injected fallback), e2e (highlighted tokens visible, light + dark). 153 unit/int + 12 e2e green; coverage met. Screenshots: learn-code light + dark.
+- **Still deferred → later slices:** Mermaid (diagrams), Pyodide (runnable Python), Piper TTS.
+
 ### Added — M8b Learn · Math (KaTeX) + the frontend Wrapper-Rule
 - **Math in lessons**: a `math` block in the Lesson model (`@saathi/domain`, additive) rendered by **KaTeX** behind a `MathRenderPort` (`KatexMath`, with a deterministic `PlainMath` fallback). Inline + display modes; malformed TeX degrades to readable text (`throwOnError:false`); `lessonPlainText` skips math (not narration).
 - **Frontend Wrapper-Rule established (ADR-0005)**: vendor *render* libraries may be imported **only** inside `packages/frontend/src/adapters/**`, behind a port — enforced by ESLint (anchored `^katex(/|$)` so it can't catch our own folder) + dependency-cruiser (`vendor-only-in-adapter` now exempts `frontend/src/adapters`, `domain-stays-pure` forbids katex). KaTeX's CSS is imported inside its adapter, so it ships only when bundled. CSP gains **`font-src 'self'`** so KaTeX's woff2 fonts load when packaged.

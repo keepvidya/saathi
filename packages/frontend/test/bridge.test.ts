@@ -18,6 +18,7 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
       'extractPdfText',
       'runPython',
       'browserPort',
+      'memoryControl',
     ])
   })
 
@@ -112,6 +113,10 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
     ;(globalThis as Record<string, unknown>).saathi = { app: { getInfo: vi.fn() }, browser: hostBrowser }
     expect(bridge.browserPort()).toBe(hostBrowser)
 
+    delete (globalThis as Record<string, unknown>).saathi
+    const noopMem = bridge.memoryControl()
+    await expect(noopMem.remember('x')).resolves.toBeNull()
+    await expect(Promise.all([noopMem.recall('x'), noopMem.list(), noopMem.forget('x')])).resolves.toHaveLength(3)
     delete (globalThis as Record<string, unknown>).saathi
     const noop = bridge.browserPort()
     await expect(noop.newTab()).resolves.toEqual({

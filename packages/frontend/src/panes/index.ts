@@ -5,6 +5,7 @@ import { renderKnowledge } from './knowledge/knowledge-pane'
 import { renderLearn } from './learn/learn-pane'
 import { renderBrowser } from './browser/browser-pane'
 import { renderAgent } from './agent/agent-pane'
+import { renderMemory } from './memory/memory-pane'
 
 /** Nav metadata (order = rail order). Settings is pinned separately in the shell footer. */
 export interface NavItem {
@@ -22,6 +23,7 @@ export const NAV: NavItem[] = [
   { id: 'office', label: 'Office', icon: 'M3 3h18v18H3zM3 9h18M9 3v18' },
   { id: 'browser', label: 'Browser', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18' },
   { id: 'agent', label: 'Agent', icon: 'M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M9 13v2M15 13v2' },
+  { id: 'memory', label: 'Memory', icon: 'M9 3a4 4 0 0 0-4 4 3 3 0 0 0-1 5.8A3.5 3.5 0 0 0 7 19a3 3 0 0 0 5-1V5a2 2 0 0 0-3-2zM12 6a2 2 0 0 1 3-2 4 4 0 0 1 4 4 3 3 0 0 1 1 5.8A3.5 3.5 0 0 1 17 19a3 3 0 0 1-5-1' },
   { id: 'skills', label: 'Skills', icon: 'M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6z' },
 ]
 
@@ -63,6 +65,7 @@ const BLURB: Record<PaneId, string> = {
   office: 'Slides, Sheets, Docs & PDF — built on your machine. No Microsoft Office, no logins.',
   browser: 'A private, multi-tab browser with Shields — ads & trackers blocked, video plays clean.',
   agent: 'Your AI employee — a supervisor reasons, plans, and assigns to specialist workers.',
+  memory: 'What Saathi remembers for you — private notes, searchable by relevance.',
   skills: 'Reusable skills the app learns and improves over time.',
   settings: 'Local by default. Providers, web search, memory, themes, updates.',
 }
@@ -75,6 +78,7 @@ const REAL: Partial<Record<PaneId, Pane>> = {
   office: { id: 'office', label: 'Office', render: renderOffice },
   browser: { id: 'browser', label: 'Browser', render: renderBrowser },
   agent: { id: 'agent', label: 'Agent', render: renderAgent },
+  memory: { id: 'memory', label: 'Memory', render: renderMemory },
 }
 
 export const PANES: Pane[] = [...NAV, SETTINGS_NAV].map(

@@ -9,6 +9,7 @@ import {
   PdfLibDocExport,
   PdfJsRead,
   PyodideRun,
+  JsonMemory,
   OllamaLlm,
   OllamaChat,
 } from '@saathi/backend'
@@ -185,6 +186,23 @@ ipcMain.handle(IPC.browserSetBounds, (_e, rect: unknown) => {
 })
 ipcMain.handle(IPC.browserSetVisible, (_e, v: unknown) => browserTabs()?.setVisible(!!v))
 ipcMain.handle(IPC.browserToggleShields, () => browserTabs()?.toggleShields())
+
+// Persistent local memory (in-house full-text engine, ADR-0007). Lazy file in userData.
+let memory: JsonMemory | null = null
+function mem(): JsonMemory {
+  if (!memory) memory = new JsonMemory(join(app.getPath('userData'), 'saathi-memory.json'))
+  return memory
+}
+ipcMain.handle(IPC.memoryRemember, (_e, text: unknown) =>
+  typeof text === 'string' && text.trim() ? mem().remember(text) : null,
+)
+ipcMain.handle(IPC.memoryRecall, (_e, query: unknown, limit: unknown) =>
+  mem().recall(typeof query === 'string' ? query : '', typeof limit === 'number' ? limit : undefined),
+)
+ipcMain.handle(IPC.memoryList, () => mem().list())
+ipcMain.handle(IPC.memoryForget, (_e, id: unknown) => {
+  if (typeof id === 'string') mem().forget(id)
+})
 
 void app.whenReady().then(() => {
   if (!isDev) {

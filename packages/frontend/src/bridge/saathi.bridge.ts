@@ -4,8 +4,17 @@ import type {
   PyRunResult,
   BrowserSnapshot,
   ViewBounds,
+  MemoryItem,
 } from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
+
+/** The memory surface the Memory pane depends on (host or a test stub). */
+export interface MemoryControl {
+  remember(text: string): Promise<MemoryItem | null>
+  recall(query: string, limit?: number): Promise<MemoryItem[]>
+  list(): Promise<MemoryItem[]>
+  forget(id: string): Promise<void>
+}
 
 /** The browser control surface the Browser pane depends on (host or a test stub). */
 export interface BrowserPort {
@@ -33,6 +42,7 @@ type SaathiWindow = {
     pdf?: { extractText(bytes: Uint8Array): Promise<string> }
     py?: { run(code: string): Promise<PyRunResult> }
     browser?: BrowserPort
+    memory?: MemoryControl
   }
 }
 
@@ -119,6 +129,18 @@ function browserPort(): BrowserPort {
   }
 }
 
+/** The memory surface. Uses the host when present, else a safe in-tab fallback. */
+function memoryControl(): MemoryControl {
+  const w = globalThis as unknown as SaathiWindow
+  if (w.saathi?.memory) return w.saathi.memory
+  return {
+    remember: async () => null,
+    recall: async () => [],
+    list: async () => [],
+    forget: async () => {},
+  }
+}
+
 export const bridge = {
   getAppInfo,
   exportXlsx,
@@ -130,4 +152,5 @@ export const bridge = {
   extractPdfText,
   runPython,
   browserPort,
+  memoryControl,
 }

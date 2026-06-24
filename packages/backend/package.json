@@ -5,13 +5,16 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "exports": { ".": "./src/index.ts" },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "dependencies": {
     "@saathi/domain": "0.1.0",
     "@saathi/shared": "0.1.0",
     "docx": "^9.0.3",
     "exceljs": "^4.4.0",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
     "pptxgenjs": "^3.12.0"
   }
 }

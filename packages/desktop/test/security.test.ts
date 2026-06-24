@@ -17,13 +17,14 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
     const invoke = vi.fn().mockResolvedValue({ name: 'Saathi', version: '0.1.0', platform: 'win32' })
     const api = buildApi(invoke)
 
-    expect(Object.keys(api)).toEqual(['app', 'sheet', 'doc', 'slide', 'llm', 'chat'])
+    expect(Object.keys(api)).toEqual(['app', 'sheet', 'doc', 'slide', 'llm', 'chat', 'pdf'])
     expect(Object.keys(api.app)).toEqual(['getInfo'])
     expect(Object.keys(api.sheet)).toEqual(['exportXlsx'])
     expect(Object.keys(api.doc)).toEqual(['exportDocx', 'exportPdf'])
     expect(Object.keys(api.slide)).toEqual(['exportPptx'])
     expect(Object.keys(api.chat)).toEqual(['reply'])
     expect(Object.keys(api.llm)).toEqual(['narrate'])
+    expect(Object.keys(api.pdf)).toEqual(['extractText'])
 
     void api.app.getInfo()
     expect(invoke).toHaveBeenCalledWith(IPC.appGetInfo)

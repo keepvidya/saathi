@@ -7,6 +7,7 @@ import {
   DocxDocExport,
   PptxDeckExport,
   PdfLibDocExport,
+  PdfJsRead,
   OllamaLlm,
   OllamaChat,
 } from '@saathi/backend'
@@ -112,6 +113,13 @@ const ollamaChat = new OllamaChat()
 ipcMain.handle(IPC.chatReply, async (_e, messages: ChatMessage[]): Promise<string> => {
   if (!Array.isArray(messages)) return ''
   return ollamaChat.reply(messages)
+})
+
+// Extract text from PDF bytes for knowledge ingest (returns '' on bad input or failure).
+const pdfRead = new PdfJsRead()
+ipcMain.handle(IPC.pdfExtractText, async (_e, bytes: unknown): Promise<string> => {
+  if (!(bytes instanceof Uint8Array) && !Array.isArray(bytes)) return ''
+  return pdfRead.extractText(bytes instanceof Uint8Array ? bytes : Uint8Array.from(bytes as number[]))
 })
 
 void app.whenReady().then(() => {

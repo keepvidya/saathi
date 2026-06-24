@@ -15,6 +15,7 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
       'exportPptx',
       'narrate',
       'chatReply',
+      'extractPdfText',
     ])
   })
 
@@ -82,5 +83,14 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
     await expect(bridge.chatReply([{ role: 'user', content: 'x' }])).resolves.toBe('hi')
     delete (globalThis as Record<string, unknown>).saathi
     await expect(bridge.chatReply([{ role: 'user', content: 'x' }])).resolves.toBe('')
+  })
+
+  it('extractPdfText returns host text, or "" without a host', async () => {
+    const extractText = vi.fn().mockResolvedValue('pdf words')
+    ;(globalThis as Record<string, unknown>).saathi = { app: { getInfo: vi.fn() }, pdf: { extractText } }
+    await expect(bridge.extractPdfText(new Uint8Array([1]))).resolves.toBe('pdf words')
+    expect(extractText).toHaveBeenCalledOnce()
+    delete (globalThis as Record<string, unknown>).saathi
+    await expect(bridge.extractPdfText(new Uint8Array([1]))).resolves.toBe('')
   })
 })

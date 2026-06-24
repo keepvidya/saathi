@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M7 Knowledge / RAG
+- **Pure RAG engine** (`@saathi/domain`): `chunkText` (paragraph/size chunking) → a `Corpus` repository → a lexical **`retrieve`** (TF-IDF: term-frequency × smoothed inverse-doc-frequency, top-k) → an **extractive, cited `composeAnswer`** → `{ answer, citations }`. Per our DNA the grounding path has **no LLM** — the answer is verbatim document text with a `[n]` citation back to its source; nothing is invented.
+- **PDF text extraction** (`@saathi/backend`) behind a new `PdfReadPort`, wrapping **pdf.js (`pdfjs-dist`, legacy Node build)** — the only file importing it (Wrapper Rule, extended in ESLint + dependency-cruiser). Loaded via dynamic `import()` so the ESM library runs from the CJS main bundle. `pdf:extractText` IPC (validated) → renderer `bridge.extractPdfText`. *(pdf-parse was tried first but its bundled, ancient pdf.js fails on Node 22.)*
+- **Knowledge pane** (`@saathi/frontend`): add a document (paste text **or upload a PDF**), a document list, ask a question → a grounded answer (markdown) + **citation chips** that name the source document and quote the passage. Brand-locked light + dark.
+- Tests: domain RAG units (chunking, TF-IDF ranking + k, extractive-grounded cited answer, empty cases), pdf.js round-trip integration, Knowledge-pane integration (ingest → ask → citation), e2e (add → ask → cited answer). 124 unit/integration + 9 e2e, gated coverage met. Screenshots: knowledge light + dark.
+
 ### Added — M6 Chat
 - **Local AI chat** (the default pane): a pure `ChatPort` + deterministic `EchoChat` + `Conversation` model and a minimal **XSS-safe markdown→HTML** renderer (`@saathi/domain`); an **Ollama chat adapter** (`@saathi/backend`, `/api/chat`, `''` on failure) + `chat:reply` IPC; the Chat pane (message list, composer, markdown replies, `CompositeChat` = Ollama→Echo fallback) in `@saathi/frontend`.
 - Works **offline** (deterministic reply) and uses **Ollama** when running; conversation persists in-session; replies render markdown (bold/italic/code/lists/links) safely (escape-first, link-sanitised).

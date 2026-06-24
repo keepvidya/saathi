@@ -10,6 +10,7 @@ export const IPC = {
   slideExportPptx: 'slide:exportPptx',
   llmNarrate: 'llm:narrate',
   chatReply: 'chat:reply',
+  pdfExtractText: 'pdf:extractText',
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]

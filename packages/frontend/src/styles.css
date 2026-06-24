@@ -1001,3 +1001,245 @@ button {
 .chat-composer .send:hover {
   background: var(--primary-hover);
 }
+
+/* ── Knowledge pane ─────────────────────────────────────────── */
+.knowledge {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.kn-head {
+  padding: 22px 26px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.kn-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  margin: 0 0 4px;
+  color: var(--text);
+}
+.kn-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.kn-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+}
+.kn-side {
+  border-right: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.kn-add {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kn-input,
+.kn-area {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+  box-sizing: border-box;
+}
+.kn-area {
+  resize: vertical;
+  min-height: 78px;
+}
+.kn-input:focus,
+.kn-area:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-subtle);
+}
+.kn-add-row {
+  display: flex;
+  gap: 8px;
+}
+.kn-btn {
+  flex: 1;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.kn-btn:hover {
+  border-color: var(--primary);
+}
+.kn-btn.primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+.kn-btn.primary:hover {
+  background: var(--primary-hover);
+}
+.kn-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.kn-docs-h {
+  padding: 12px 16px 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.kn-docs {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.kn-doc {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+.kn-doc:hover {
+  background: var(--surface-3);
+}
+.kn-doc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex: none;
+}
+.kn-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.kn-answer {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+.kn-empty {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 520px;
+}
+.kn-q {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.kn-a {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+.kn-a p {
+  margin: 0;
+}
+.kn-cites {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kn-cite {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+}
+.kn-cite-n {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.kn-cite-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.kn-cite-snip {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.kn-ask {
+  border-top: 1px solid var(--border);
+  padding: 12px 26px;
+}
+.kn-ask .cbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 6px 6px 6px 14px;
+  background: var(--surface);
+}
+.kn-ask .cbox:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-subtle);
+}
+.kn-ask input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+.kn-ask .send {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+  font-size: 17px;
+  flex: none;
+}
+.kn-ask .send:hover {
+  background: var(--primary-hover);
+}

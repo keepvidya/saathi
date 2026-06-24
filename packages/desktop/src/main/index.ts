@@ -218,6 +218,14 @@ function secretStore(): SecretStore {
   if (!secrets) secrets = new SecretStore(join(app.getPath('userData'), 'saathi-secrets.json'))
   return secrets
 }
+// First-run onboarding: only in a packaged build (so dev/e2e get the shell),
+// unless explicitly forced for testing the wizard.
+ipcMain.handle(
+  IPC.appFirstRun,
+  (): boolean =>
+    (app.isPackaged && !settingsStore().get().onboarded) ||
+    process.argv.includes('--force-onboarding'),
+)
 ipcMain.handle(IPC.settingsGet, () => settingsStore().get())
 ipcMain.handle(IPC.settingsSet, (_e, patch: unknown) =>
   settingsStore().set((patch ?? {}) as Partial<AppSettings>),

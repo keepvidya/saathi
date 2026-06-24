@@ -19,6 +19,7 @@ export function buildApi(invoke: Invoke, on: On = () => () => {}) {
   return {
     app: {
       getInfo: (): Promise<AppInfo> => invoke(IPC.appGetInfo) as Promise<AppInfo>,
+      firstRun: (): Promise<boolean> => invoke(IPC.appFirstRun) as Promise<boolean>,
     },
     sheet: {
       exportXlsx: (data: SheetData): Promise<ExportResult> =>

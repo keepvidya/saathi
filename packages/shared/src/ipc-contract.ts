@@ -4,6 +4,7 @@
  */
 export const IPC = {
   appGetInfo: 'app:getInfo',
+  appFirstRun: 'app:firstRun',
   sheetExportXlsx: 'sheet:exportXlsx',
   docExportDocx: 'doc:exportDocx',
   docExportPdf: 'doc:exportPdf',

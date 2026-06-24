@@ -17,6 +17,7 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
       'chatReply',
       'extractPdfText',
       'runPython',
+      'browserPort',
     ])
   })
 
@@ -104,5 +105,29 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
     const fallback = await bridge.runPython('print(5)')
     expect(fallback.ok).toBe(false)
     expect(fallback.output.toLowerCase()).toContain('desktop app')
+  })
+
+  it('browserPort uses the host when present, else a safe no-op port', async () => {
+    const hostBrowser = { newTab: vi.fn().mockResolvedValue({ tabs: [], activeId: undefined }) }
+    ;(globalThis as Record<string, unknown>).saathi = { app: { getInfo: vi.fn() }, browser: hostBrowser }
+    expect(bridge.browserPort()).toBe(hostBrowser)
+
+    delete (globalThis as Record<string, unknown>).saathi
+    const noop = bridge.browserPort()
+    await expect(noop.newTab()).resolves.toEqual({ tabs: [], activeId: undefined })
+    expect(noop.onEvent(() => {})).toBeTypeOf('function') // returns an unsubscribe
+    // every no-op method resolves without a host (no throws)
+    await expect(
+      Promise.all([
+        noop.closeTab(1),
+        noop.activate(1),
+        noop.navigate(1, 'x'),
+        noop.back(1),
+        noop.forward(1),
+        noop.reload(1),
+        noop.setBounds({ x: 0, y: 0, width: 0, height: 0 }),
+        noop.setVisible(true),
+      ]),
+    ).resolves.toHaveLength(8)
   })
 })

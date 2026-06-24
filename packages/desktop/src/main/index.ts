@@ -13,10 +13,19 @@ import {
   OllamaChat,
 } from '@saathi/backend'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
-import { IPC, type AppInfo, type ExportResult, type PyRunResult } from '@saathi/shared'
+import {
+  IPC,
+  type AppInfo,
+  type ExportResult,
+  type PyRunResult,
+  type ViewBounds,
+} from '@saathi/shared'
 import { WINDOW_SECURITY, CSP } from './security'
+import { BrowserTabs } from './browser-tabs'
 
 const isDev = !!process.env.ELECTRON_RENDERER_URL
+
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -33,6 +42,7 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
     },
   })
+  mainWindow = win
 
   win.on('ready-to-show', () => win.show())
 
@@ -129,6 +139,51 @@ ipcMain.handle(IPC.pyRun, async (_e, code: unknown): Promise<PyRunResult> => {
   if (typeof code !== 'string') return { ok: false, output: 'Invalid code.' }
   return pyRun.run(code)
 })
+
+// Multi-tab web browser (WebContentsView host, M9a). Lazily created with the window.
+let browser: BrowserTabs | null = null
+function browserTabs(): BrowserTabs | null {
+  if (!mainWindow) return null
+  if (!browser) {
+    const win = mainWindow
+    browser = new BrowserTabs(win, (snap) => win.webContents.send(IPC.browserEvent, snap))
+  }
+  return browser
+}
+const asId = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+
+ipcMain.handle(IPC.browserNewTab, (_e, url: unknown) =>
+  browserTabs()?.newTab(typeof url === 'string' ? url : undefined),
+)
+ipcMain.handle(IPC.browserCloseTab, (_e, id: unknown) => {
+  const n = asId(id)
+  if (n !== null) browserTabs()?.close(n)
+})
+ipcMain.handle(IPC.browserActivate, (_e, id: unknown) => {
+  const n = asId(id)
+  if (n !== null) browserTabs()?.activate(n)
+})
+ipcMain.handle(IPC.browserNavigate, (_e, id: unknown, input: unknown) => {
+  const n = asId(id)
+  if (n !== null && typeof input === 'string') browserTabs()?.navigate(n, input)
+})
+ipcMain.handle(IPC.browserBack, (_e, id: unknown) => {
+  const n = asId(id)
+  if (n !== null) browserTabs()?.back(n)
+})
+ipcMain.handle(IPC.browserForward, (_e, id: unknown) => {
+  const n = asId(id)
+  if (n !== null) browserTabs()?.forward(n)
+})
+ipcMain.handle(IPC.browserReload, (_e, id: unknown) => {
+  const n = asId(id)
+  if (n !== null) browserTabs()?.reload(n)
+})
+ipcMain.handle(IPC.browserSetBounds, (_e, rect: unknown) => {
+  const r = rect as ViewBounds
+  if (r && typeof r.x === 'number' && typeof r.width === 'number') browserTabs()?.setBounds(r)
+})
+ipcMain.handle(IPC.browserSetVisible, (_e, v: unknown) => browserTabs()?.setVisible(!!v))
 
 void app.whenReady().then(() => {
   if (!isDev) {

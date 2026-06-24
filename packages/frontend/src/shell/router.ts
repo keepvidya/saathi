@@ -7,6 +7,7 @@ export type PaneId =
   | 'office'
   | 'browser'
   | 'agent'
+  | 'memory'
   | 'skills'
   | 'settings'
 

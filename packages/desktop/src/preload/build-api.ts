@@ -5,6 +5,7 @@ import {
   type PyRunResult,
   type BrowserSnapshot,
   type ViewBounds,
+  type MemoryItem,
 } from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
@@ -63,6 +64,14 @@ export function buildApi(invoke: Invoke, on: On = () => () => {}) {
       toggleShields: (): Promise<void> => invoke(IPC.browserToggleShields) as Promise<void>,
       onEvent: (cb: (snap: BrowserSnapshot) => void): (() => void) =>
         on(IPC.browserEvent, (snap) => cb(snap as BrowserSnapshot)),
+    },
+    memory: {
+      remember: (text: string): Promise<MemoryItem | null> =>
+        invoke(IPC.memoryRemember, text) as Promise<MemoryItem | null>,
+      recall: (query: string, limit?: number): Promise<MemoryItem[]> =>
+        invoke(IPC.memoryRecall, query, limit) as Promise<MemoryItem[]>,
+      list: (): Promise<MemoryItem[]> => invoke(IPC.memoryList) as Promise<MemoryItem[]>,
+      forget: (id: string): Promise<void> => invoke(IPC.memoryForget, id) as Promise<void>,
     },
   }
 }

@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M10b Memory (full-text, local)
+- **Memory** — save private notes and **recall them by relevance**, locally. A new Memory pane: write a note, search your memory, see recent notes (newest first), forget one. Memory **persists** across restarts.
+- **Recall is computed by our own engine** (ADR-0007): a `MemoryPort` + a **`JsonMemory`** adapter (`@saathi/backend`) persists items to a JSON file and ranks recall with **the same TF-IDF retrieval as Knowledge** — no native module, no vendor, fully node-testable. (SQLite-FTS5 stays a clean future swap behind the same port — `better-sqlite3` is a native addon needing an Electron-ABI rebuild; deferred to packaging.) `memory:*` IPC + `bridge.memory`; the file lives in the app's userData dir.
+- Tests: `JsonMemory` units (remember/recall-ranking/list/forget/persistence/corrupt-file, temp file), Memory-pane integration (save → list → recall → forget), e2e (save → recall a real persisted note). 216 unit/int + 18 e2e green; coverage met. Screenshots: memory light + dark.
+- **Deferred → M10c Skills**, the agent using memory as a tool, SQLite-FTS5, tags/edit.
+
 ### Added — M10a Agent (tool-using ReAct loop)
 - **The Agent** — Saathi's "AI employee": give it a goal, a **supervisor reasons**, **delegates to worker tools** that do the real work, observes, and answers — showing its step trace. Per our DNA the **tools compute the truth**: **calc** uses the M2 formula engine (exact arithmetic, no `eval`), **search** answers from a built-in knowledge base (extractive + cited). The supervisor only routes and phrases.
 - **Pure core** (`@saathi/domain/agent`): a `Tool` + `ToolRegistry` abstraction, real builtin tools (`calc`, `search`), and a **bounded ReAct `runAgent`** loop driven by a `Planner`. The default **`RulefulPlanner`** routes deterministically (math → calc, questions → search) — fully offline and testable; a model can narrate/route later behind the same seam. The loop is `maxSteps`-bounded (no runaway) and records an ordered reason/act/observe/answer trace.

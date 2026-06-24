@@ -27,6 +27,7 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
       'pdf',
       'py',
       'browser',
+      'memory',
     ])
     expect(Object.keys(api.app)).toEqual(['getInfo'])
     expect(Object.keys(api.sheet)).toEqual(['exportXlsx'])
@@ -49,6 +50,7 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
       'toggleShields',
       'onEvent',
     ])
+    expect(Object.keys(api.memory)).toEqual(['remember', 'recall', 'list', 'forget'])
 
     // Exercise every method → each maps to its channel, and never leaks raw ipc.
     void api.app.getInfo()
@@ -72,8 +74,13 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
     void api.browser.setBounds({ x: 0, y: 0, width: 0, height: 0 })
     void api.browser.setVisible(true)
     void api.browser.toggleShields()
+    void api.memory.remember('note')
+    void api.memory.recall('q', 5)
+    void api.memory.list()
+    void api.memory.forget('id')
     expect(invoke).toHaveBeenCalledWith(IPC.browserNavigate, 1, 'x')
     expect(invoke).toHaveBeenCalledWith(IPC.browserToggleShields)
+    expect(invoke).toHaveBeenCalledWith(IPC.memoryRemember, 'note')
 
     // onEvent uses the push channel (defaults to a no-op unsubscribe in tests)
     expect(api.browser.onEvent(() => {})).toBeTypeOf('function')

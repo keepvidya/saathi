@@ -24,6 +24,10 @@ export const IPC = {
   browserToggleShields: 'browser:toggleShields',
   /** push: main → renderer, on any tab/navigation/shields change */
   browserEvent: 'browser:event',
+  memoryRemember: 'memory:remember',
+  memoryRecall: 'memory:recall',
+  memoryList: 'memory:list',
+  memoryForget: 'memory:forget',
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]
@@ -60,6 +64,13 @@ export interface TabState {
 export interface ShieldsState {
   enabled: boolean
   blocked: number
+}
+
+/** A saved memory note. */
+export interface MemoryItem {
+  id: string
+  text: string
+  createdAt: number
 }
 
 /** The whole browser state pushed to the renderer on any change. */

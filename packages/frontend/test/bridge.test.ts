@@ -19,6 +19,7 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
       'runPython',
       'browserPort',
       'memoryControl',
+      'settingsControl',
     ])
   })
 
@@ -114,6 +115,24 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
     expect(bridge.browserPort()).toBe(hostBrowser)
 
     delete (globalThis as Record<string, unknown>).saathi
+    // settingsControl: host-backed when present, else an in-tab default
+    const hostSettings = { get: vi.fn().mockResolvedValue({ userName: 'G' }), set: vi.fn() }
+    const hostSecrets = { set: vi.fn(), has: vi.fn().mockResolvedValue(true), clear: vi.fn() }
+    ;(globalThis as Record<string, unknown>).saathi = {
+      app: { getInfo: vi.fn() },
+      settings: hostSettings,
+      secrets: hostSecrets,
+    }
+    const sc = bridge.settingsControl()
+    await sc.setSecret('k', 'v')
+    expect(hostSecrets.set).toHaveBeenCalledWith('k', 'v')
+    await expect(sc.hasSecret('k')).resolves.toBe(true)
+    delete (globalThis as Record<string, unknown>).saathi
+    const localSc = bridge.settingsControl()
+    await localSc.set({ userName: 'Z' })
+    await expect(localSc.get()).resolves.toMatchObject({ userName: 'Z' })
+    await expect(localSc.hasSecret('k')).resolves.toBe(false)
+
     const noopMem = bridge.memoryControl()
     await expect(noopMem.remember('x')).resolves.toBeNull()
     await expect(Promise.all([noopMem.recall('x'), noopMem.list(), noopMem.forget('x')])).resolves.toHaveLength(3)

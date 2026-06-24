@@ -7,6 +7,7 @@ import { renderBrowser } from './browser/browser-pane'
 import { renderAgent } from './agent/agent-pane'
 import { renderMemory } from './memory/memory-pane'
 import { renderSkills } from './skills/skills-pane'
+import { renderSettings } from './settings/settings-pane'
 
 /** Nav metadata (order = rail order). Settings is pinned separately in the shell footer. */
 export interface NavItem {
@@ -81,6 +82,7 @@ const REAL: Partial<Record<PaneId, Pane>> = {
   agent: { id: 'agent', label: 'Agent', render: renderAgent },
   memory: { id: 'memory', label: 'Memory', render: renderMemory },
   skills: { id: 'skills', label: 'Skills', render: renderSkills },
+  settings: { id: 'settings', label: 'Settings', render: renderSettings },
 }
 
 export const PANES: Pane[] = [...NAV, SETTINGS_NAV].map(

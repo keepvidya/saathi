@@ -6,6 +6,7 @@ import {
   type BrowserSnapshot,
   type ViewBounds,
   type MemoryItem,
+  type AppSettings,
 } from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
@@ -72,6 +73,18 @@ export function buildApi(invoke: Invoke, on: On = () => () => {}) {
         invoke(IPC.memoryRecall, query, limit) as Promise<MemoryItem[]>,
       list: (): Promise<MemoryItem[]> => invoke(IPC.memoryList) as Promise<MemoryItem[]>,
       forget: (id: string): Promise<void> => invoke(IPC.memoryForget, id) as Promise<void>,
+    },
+    settings: {
+      get: (): Promise<AppSettings> => invoke(IPC.settingsGet) as Promise<AppSettings>,
+      set: (patch: Partial<AppSettings>): Promise<AppSettings> =>
+        invoke(IPC.settingsSet, patch) as Promise<AppSettings>,
+    },
+    secrets: {
+      // set / has / clear only — there is no `get` (plaintext keys never leave main).
+      set: (name: string, value: string): Promise<void> =>
+        invoke(IPC.secretSet, name, value) as Promise<void>,
+      has: (name: string): Promise<boolean> => invoke(IPC.secretHas, name) as Promise<boolean>,
+      clear: (name: string): Promise<void> => invoke(IPC.secretClear, name) as Promise<void>,
     },
   }
 }

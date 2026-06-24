@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M11a Settings + encrypted keys
+- **A real Settings pane** (Profile · AI provider · Web search · Appearance · About): set your **name** and **theme**, choose **Offline (local Ollama + Shiva)** or **Cloud (BYOK)**, pick a web-search provider (None / Serper / Brave), and save provider **API keys**.
+- **Keys are encrypted at rest** via Electron **`safeStorage`** (OS-backed: Windows DPAPI), wrapped in a main-process `SecretStore` (ADR-0008). The renderer can **set / check-presence / clear** a key but **never read it** — there is deliberately no `secret:get` IPC; plaintext keys live only in main. The UI shows a key only as "Set ✓ (encrypted)". Non-secret config is a JSON `SettingsPort`/`JsonSettings` (`@saathi/backend`, unit-tested).
+- `settings:*` + `secret:*` IPC + `bridge.settingsControl`. This is the config the onboarding wizard (M11b) writes into.
+- Tests: `JsonSettings` units (defaults/merge/persist/corrupt), Settings-pane integration (load, save name/provider, key set→presence→clear, value never rendered), security contract (no `secret:get`), e2e. 234 unit/int + 20 e2e green; coverage met. Screenshots: settings light + dark.
+
 ### Added — M10c Skills (reusable recipes)
 - **Skills** — a catalogue of named, reusable recipes (Calculator, Look up, Percentage, Tip splitter, Average). Each skill turns a small input into an **agent goal** and routes it through the **real** worker tools (calc / search), so the answer is **computed, not invented** — and the pane shows the goal it built (e.g. "15% of 240" → `(240 * 15 / 100)` → 36; "120, 4, 18" → `(120 * (1 + 18 / 100)) / 4` → 35.4). The stub Skills pane is now real.
 - **Pure core** (`@saathi/domain/agent/skills`): `Skill` + `SkillRegistry` + `BUILTIN_SKILLS` + `runSkill` (= `runDefaultAgent(skill.toGoal(input))`) — deterministic templates composing M10a, fully unit-tested; malformed input falls back to the raw text (no crash). No new vendor/IPC.

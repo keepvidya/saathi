@@ -5,7 +5,9 @@ import type {
   BrowserSnapshot,
   ViewBounds,
   MemoryItem,
+  AppSettings,
 } from '@saathi/shared'
+import { defaultSettings } from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
 /** The memory surface the Memory pane depends on (host or a test stub). */
@@ -14,6 +16,15 @@ export interface MemoryControl {
   recall(query: string, limit?: number): Promise<MemoryItem[]>
   list(): Promise<MemoryItem[]>
   forget(id: string): Promise<void>
+}
+
+/** Settings + secrets surface for the Settings/Onboarding panes. Keys can be set/checked/cleared, never read. */
+export interface SettingsControl {
+  get(): Promise<AppSettings>
+  set(patch: Partial<AppSettings>): Promise<AppSettings>
+  hasSecret(name: string): Promise<boolean>
+  setSecret(name: string, value: string): Promise<void>
+  clearSecret(name: string): Promise<void>
 }
 
 /** The browser control surface the Browser pane depends on (host or a test stub). */
@@ -43,6 +54,12 @@ type SaathiWindow = {
     py?: { run(code: string): Promise<PyRunResult> }
     browser?: BrowserPort
     memory?: MemoryControl
+    settings?: { get(): Promise<AppSettings>; set(p: Partial<AppSettings>): Promise<AppSettings> }
+    secrets?: {
+      set(name: string, value: string): Promise<void>
+      has(name: string): Promise<boolean>
+      clear(name: string): Promise<void>
+    }
   }
 }
 
@@ -141,6 +158,29 @@ function memoryControl(): MemoryControl {
   }
 }
 
+/** Settings + secrets. Uses the host when present, else an in-tab default (no persistence). */
+function settingsControl(): SettingsControl {
+  const w = globalThis as unknown as SaathiWindow
+  const s = w.saathi
+  if (s?.settings && s?.secrets) {
+    return {
+      get: () => s.settings!.get(),
+      set: (patch) => s.settings!.set(patch),
+      hasSecret: (name) => s.secrets!.has(name),
+      setSecret: (name, value) => s.secrets!.set(name, value),
+      clearSecret: (name) => s.secrets!.clear(name),
+    }
+  }
+  let local = defaultSettings()
+  return {
+    get: async () => local,
+    set: async (patch) => (local = { ...local, ...patch }),
+    hasSecret: async () => false,
+    setSecret: async () => {},
+    clearSecret: async () => {},
+  }
+}
+
 export const bridge = {
   getAppInfo,
   exportXlsx,
@@ -153,4 +193,5 @@ export const bridge = {
   runPython,
   browserPort,
   memoryControl,
+  settingsControl,
 }

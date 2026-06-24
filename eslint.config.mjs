@@ -61,6 +61,7 @@ export default tseslint.config(
             { name: 'docx', message: 'Wrap docx in backend/adapters, not here.' },
             { name: 'pptxgenjs', message: 'Wrap pptxgenjs in backend/adapters, not here.' },
             { name: 'pdf-lib', message: 'Wrap pdf-lib in backend/adapters, not here.' },
+            { name: 'pyodide', message: 'Wrap Pyodide in backend/adapters, not here.' },
           ],
           patterns: [
             'electron',

@@ -4,6 +4,12 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M8e Learn · Runnable code (Pyodide, in the main process)
+- **Runnable Python snippets**: a `runnable` flag on the `code` block (`@saathi/domain`, additive) adds a **Run** button; clicking executes the code with **real CPython (Pyodide)** and shows its actual stdout — the narrator principle at full strength (the output is *real program output*, offline). A Python error shows the error text, not a crash.
+- **Pyodide runs in the main process** (ADR-0006), behind a `PyRunPort` + `PyodideRun` adapter (`@saathi/backend`, lazy singleton, explicit `indexURL`) reached via a `py:run` IPC channel + `bridge.runPython`. The renderer never touches WASM, so there is **no CSP change** and no `unsafe-eval` — consistent with the privacy/security baseline. The backend Wrapper Rule now covers `pyodide`.
+- Tests: Pyodide adapter units (stdout capture, error reporting, empty run), bridge unit (host + "needs the app" fallback), preload contract (`py.run`), Learn-pane integration (Run button presence, success/error output), e2e (real Python output in the app). 167 unit/int + 14 e2e green; coverage met. Screenshots: learn-run light + dark.
+- **Learn is now fully featured** (quiz engine · read-aloud · KaTeX math · Shiki code · Mermaid diagrams · runnable Python). Piper TTS remains an optional future swap behind `SpeechPort`.
+
 ### Added — M8d Learn · Diagrams (Mermaid)
 - **Mermaid diagrams** in lessons: a `diagram` block (`@saathi/domain`, additive) rendered by **Mermaid** behind a `DiagramRenderPort` (`MermaidDiagram`, lazy dynamic-import, `securityLevel:'strict'`; deterministic `PlainDiagram` fallback) — the third adapter under the frontend Wrapper-Rule (ADR-0005). Progressive enhancement: the definition shows immediately, then the SVG swaps in.
 - **Theme-reactive**: Mermaid bakes colours into the SVG, so the pane installs a `MutationObserver` on `<html data-theme>` and **re-renders** diagrams in the matching Mermaid theme (light→`neutral`, dark→`dark`) on a theme switch; the observer self-disconnects once the pane leaves the DOM. Invalid diagrams degrade to their source (no crash).

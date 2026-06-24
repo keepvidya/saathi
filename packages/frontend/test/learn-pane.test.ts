@@ -195,4 +195,44 @@ describe('TC-10.2 — Learn pane', () => {
     await flush()
     expect(host.querySelector('.lsn-diagram-body')?.innerHTML).toContain('a&lt;b')
   })
+
+  it('TC-14.2.1 — a runnable code block shows Run + output; non-runnable does not', () => {
+    const lesson: Lesson = {
+      title: 'Run',
+      blocks: [
+        { kind: 'code', lang: 'python', runnable: true, source: 'print(1)' },
+        { kind: 'code', lang: 'javascript', source: 'const x = 1' },
+      ],
+    }
+    render({ lesson })
+    const codes = host.querySelectorAll('.lsn-code')
+    expect(codes[0].querySelector('.lsn-run')).toBeTruthy()
+    expect(codes[0].querySelector('.lsn-run-out')).toBeTruthy()
+    expect(codes[1].querySelector('.lsn-run')).toBeNull()
+  })
+
+  it('TC-14.2.2 — clicking Run shows the output (success then error styling)', async () => {
+    const okLesson: Lesson = {
+      title: 'Run',
+      blocks: [{ kind: 'code', lang: 'python', runnable: true, source: 'print(6*7)' }],
+    }
+    const run = vi.fn().mockResolvedValue({ ok: true, output: '42' })
+    render({ lesson: okLesson, run })
+    host.querySelector<HTMLButtonElement>('.lsn-run')!.click()
+    await flush()
+    expect(run).toHaveBeenCalledWith('print(6*7)')
+    const out = host.querySelector<HTMLElement>('.lsn-run-out')!
+    expect(out.hidden).toBe(false)
+    expect(out.textContent).toBe('42')
+    expect(out.classList.contains('err')).toBe(false)
+
+    // a failing run shows the error styling
+    const errRun = vi.fn().mockResolvedValue({ ok: false, output: 'Boom' })
+    render({ lesson: okLesson, run: errRun })
+    host.querySelector<HTMLButtonElement>('.lsn-run')!.click()
+    await flush()
+    const errOut = host.querySelector<HTMLElement>('.lsn-run-out')!
+    expect(errOut.textContent).toBe('Boom')
+    expect(errOut.classList.contains('err')).toBe(true)
+  })
 })

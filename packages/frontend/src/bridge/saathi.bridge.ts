@@ -1,4 +1,4 @@
-import type { AppInfo, ExportResult } from '@saathi/shared'
+import type { AppInfo, ExportResult, PyRunResult } from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
 type SaathiWindow = {
@@ -10,6 +10,7 @@ type SaathiWindow = {
     llm?: { narrate(p: NarratePrompt): Promise<string[]> }
     chat?: { reply(messages: ChatMessage[]): Promise<string> }
     pdf?: { extractText(bytes: Uint8Array): Promise<string> }
+    py?: { run(code: string): Promise<PyRunResult> }
   }
 }
 
@@ -69,6 +70,13 @@ async function extractPdfText(bytes: Uint8Array): Promise<string> {
   return ''
 }
 
+/** Run Python via the host (Pyodide in main). Without a host, says it needs the app. */
+async function runPython(code: string): Promise<PyRunResult> {
+  const w = globalThis as unknown as SaathiWindow
+  if (w.saathi?.py?.run) return w.saathi.py.run(code)
+  return { ok: false, output: 'Running code needs the Saathi desktop app.' }
+}
+
 export const bridge = {
   getAppInfo,
   exportXlsx,
@@ -78,4 +86,5 @@ export const bridge = {
   narrate,
   chatReply,
   extractPdfText,
+  runPython,
 }

@@ -16,6 +16,7 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
       'narrate',
       'chatReply',
       'extractPdfText',
+      'runPython',
     ])
   })
 
@@ -92,5 +93,16 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
     expect(extractText).toHaveBeenCalledOnce()
     delete (globalThis as Record<string, unknown>).saathi
     await expect(bridge.extractPdfText(new Uint8Array([1]))).resolves.toBe('')
+  })
+
+  it('runPython delegates to the host, or reports it needs the app', async () => {
+    const run = vi.fn().mockResolvedValue({ ok: true, output: '5' })
+    ;(globalThis as Record<string, unknown>).saathi = { app: { getInfo: vi.fn() }, py: { run } }
+    await expect(bridge.runPython('print(5)')).resolves.toEqual({ ok: true, output: '5' })
+    expect(run).toHaveBeenCalledWith('print(5)')
+    delete (globalThis as Record<string, unknown>).saathi
+    const fallback = await bridge.runPython('print(5)')
+    expect(fallback.ok).toBe(false)
+    expect(fallback.output.toLowerCase()).toContain('desktop app')
   })
 })

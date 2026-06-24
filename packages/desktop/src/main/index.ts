@@ -184,6 +184,7 @@ ipcMain.handle(IPC.browserSetBounds, (_e, rect: unknown) => {
   if (r && typeof r.x === 'number' && typeof r.width === 'number') browserTabs()?.setBounds(r)
 })
 ipcMain.handle(IPC.browserSetVisible, (_e, v: unknown) => browserTabs()?.setVisible(!!v))
+ipcMain.handle(IPC.browserToggleShields, () => browserTabs()?.toggleShields())
 
 void app.whenReady().then(() => {
   if (!isDev) {

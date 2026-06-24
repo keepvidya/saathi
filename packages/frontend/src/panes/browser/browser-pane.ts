@@ -1,4 +1,4 @@
-import type { BrowserSnapshot, TabState } from '@saathi/shared'
+import type { BrowserSnapshot, TabState, ShieldsState } from '@saathi/shared'
 import { bridge, type BrowserPort } from '../../bridge/saathi.bridge'
 
 const esc = (s: string): string =>
@@ -18,6 +18,7 @@ export function renderBrowser(host: HTMLElement, opts: BrowserOptions = {}): voi
   const browser = opts.browser ?? bridge.browserPort()
   let tabs: TabState[] = []
   let activeId: number | undefined
+  let shields: ShieldsState = { enabled: true, blocked: 0 }
   let initialized = false
 
   host.innerHTML = `<div class="browser" data-pane="browser">
@@ -30,6 +31,9 @@ export function renderBrowser(host: HTMLElement, opts: BrowserOptions = {}): voi
       <button class="br-nav" id="br-fwd" title="Forward" aria-label="Forward" disabled>›</button>
       <button class="br-nav" id="br-reload" title="Reload" aria-label="Reload">⟳</button>
       <input class="br-address" id="br-address" placeholder="Search DuckDuckGo or enter a URL" spellcheck="false" />
+      <button class="br-shield" id="br-shield" title="Shields — ads & trackers blocked">
+        <span class="br-shield-ic" aria-hidden="true">🛡</span><span class="br-shield-n" id="br-shield-n">0</span>
+      </button>
     </div>
     <div class="br-content" id="br-content"></div>
   </div>`
@@ -40,6 +44,8 @@ export function renderBrowser(host: HTMLElement, opts: BrowserOptions = {}): voi
   const address = host.querySelector<HTMLInputElement>('#br-address')!
   const back = host.querySelector<HTMLButtonElement>('#br-back')!
   const fwd = host.querySelector<HTMLButtonElement>('#br-fwd')!
+  const shieldBtn = host.querySelector<HTMLButtonElement>('#br-shield')!
+  const shieldN = host.querySelector<HTMLElement>('#br-shield-n')!
 
   const active = (): TabState | undefined => tabs.find((t) => t.id === activeId)
 
@@ -56,11 +62,17 @@ export function renderBrowser(host: HTMLElement, opts: BrowserOptions = {}): voi
     if (document.activeElement !== address) address.value = cur?.url === 'about:blank' ? '' : (cur?.url ?? '')
     back.disabled = !cur?.canGoBack
     fwd.disabled = !cur?.canGoForward
+    shieldN.textContent = String(shields.blocked)
+    shieldBtn.classList.toggle('off', !shields.enabled)
+    shieldBtn.title = shields.enabled
+      ? `Shields on — ${shields.blocked} blocked`
+      : 'Shields off — click to enable'
   }
 
   const onSnap = (snap: BrowserSnapshot): void => {
     tabs = snap.tabs
     activeId = snap.activeId
+    shields = snap.shields
     if (!initialized) {
       initialized = true
       if (tabs.length === 0) void browser.newTab() // open the first tab on entry
@@ -96,6 +108,7 @@ export function renderBrowser(host: HTMLElement, opts: BrowserOptions = {}): voi
   host
     .querySelector<HTMLElement>('#br-reload')!
     .addEventListener('click', () => activeId !== undefined && void browser.reload(activeId))
+  shieldBtn.addEventListener('click', () => void browser.toggleShields())
   address.addEventListener('keydown', (e) => {
     if ((e as KeyboardEvent).key === 'Enter' && activeId !== undefined) {
       e.preventDefault()

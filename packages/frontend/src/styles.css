@@ -1631,6 +1631,32 @@ html[data-theme='dark'] .lsn-code .shiki span {
   box-shadow: 0 0 0 2px var(--primary-subtle);
   background: var(--surface);
 }
+.br-shield {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.br-shield:hover {
+  border-color: var(--primary);
+}
+.br-shield.off {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+.br-shield-ic {
+  font-size: 14px;
+}
 .br-content {
   flex: 1;
   min-height: 0;

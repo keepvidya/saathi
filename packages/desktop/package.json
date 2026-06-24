@@ -10,6 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@ghostery/adblocker-electron": "^2.18.0",
     "@saathi/backend": "0.1.0",
     "@saathi/domain": "0.1.0",
     "@saathi/frontend": "0.1.0",

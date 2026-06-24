@@ -21,7 +21,8 @@ export const IPC = {
   browserReload: 'browser:reload',
   browserSetBounds: 'browser:setBounds',
   browserSetVisible: 'browser:setVisible',
-  /** push: main → renderer, on any tab/navigation change */
+  browserToggleShields: 'browser:toggleShields',
+  /** push: main → renderer, on any tab/navigation/shields change */
   browserEvent: 'browser:event',
 } as const
 
@@ -55,10 +56,17 @@ export interface TabState {
   canGoForward: boolean
 }
 
+/** Ad/tracker-blocking state: on/off + how many requests blocked this session. */
+export interface ShieldsState {
+  enabled: boolean
+  blocked: number
+}
+
 /** The whole browser state pushed to the renderer on any change. */
 export interface BrowserSnapshot {
   tabs: TabState[]
   activeId?: number
+  shields: ShieldsState
 }
 
 /** Pixel bounds of the renderer's content region, where the active view is sized. */

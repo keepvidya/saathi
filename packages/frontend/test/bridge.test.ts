@@ -114,7 +114,11 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
 
     delete (globalThis as Record<string, unknown>).saathi
     const noop = bridge.browserPort()
-    await expect(noop.newTab()).resolves.toEqual({ tabs: [], activeId: undefined })
+    await expect(noop.newTab()).resolves.toEqual({
+      tabs: [],
+      activeId: undefined,
+      shields: { enabled: true, blocked: 0 },
+    })
     expect(noop.onEvent(() => {})).toBeTypeOf('function') // returns an unsubscribe
     // every no-op method resolves without a host (no throws)
     await expect(
@@ -127,7 +131,8 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
         noop.reload(1),
         noop.setBounds({ x: 0, y: 0, width: 0, height: 0 }),
         noop.setVisible(true),
+        noop.toggleShields(),
       ]),
-    ).resolves.toHaveLength(8)
+    ).resolves.toHaveLength(9)
   })
 })

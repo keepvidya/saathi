@@ -18,6 +18,7 @@ export interface BrowserPort {
   reload(id: number): Promise<void>
   setBounds(rect: ViewBounds): Promise<void>
   setVisible(visible: boolean): Promise<void>
+  toggleShields(): Promise<void>
   onEvent(cb: (snap: BrowserSnapshot) => void): () => void
 }
 
@@ -102,7 +103,7 @@ async function runPython(code: string): Promise<PyRunResult> {
 function browserPort(): BrowserPort {
   const w = globalThis as unknown as SaathiWindow
   if (w.saathi?.browser) return w.saathi.browser
-  const empty: BrowserSnapshot = { tabs: [], activeId: undefined }
+  const empty: BrowserSnapshot = { tabs: [], activeId: undefined, shields: { enabled: true, blocked: 0 } }
   return {
     newTab: async () => empty,
     closeTab: async () => {},
@@ -113,6 +114,7 @@ function browserPort(): BrowserPort {
     reload: async () => {},
     setBounds: async () => {},
     setVisible: async () => {},
+    toggleShields: async () => {},
     onEvent: () => () => {},
   }
 }

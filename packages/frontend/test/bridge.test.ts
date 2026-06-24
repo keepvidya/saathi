@@ -9,6 +9,7 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
   it('exposes getAppInfo only (no ipc internals)', () => {
     expect(Object.keys(bridge)).toEqual([
       'getAppInfo',
+      'firstRun',
       'exportXlsx',
       'exportDocx',
       'exportPdf',
@@ -38,6 +39,14 @@ describe('TC-00.1.3 — bridge is minimal & safe', () => {
     const info = await bridge.getAppInfo()
     expect(info.name).toBe('Saathi')
     expect(info.platform).toBe('web')
+  })
+
+  it('firstRun uses the host, and is false without one', async () => {
+    const fr = vi.fn().mockResolvedValue(true)
+    ;(globalThis as Record<string, unknown>).saathi = { app: { getInfo: vi.fn(), firstRun: fr } }
+    await expect(bridge.firstRun()).resolves.toBe(true)
+    delete (globalThis as Record<string, unknown>).saathi
+    await expect(bridge.firstRun()).resolves.toBe(false)
   })
 
   it('exportXlsx uses window.saathi.sheet when present', async () => {

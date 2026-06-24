@@ -31,7 +31,7 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
       'settings',
       'secrets',
     ])
-    expect(Object.keys(api.app)).toEqual(['getInfo'])
+    expect(Object.keys(api.app)).toEqual(['getInfo', 'firstRun'])
     expect(Object.keys(api.sheet)).toEqual(['exportXlsx'])
     expect(Object.keys(api.doc)).toEqual(['exportDocx', 'exportPdf'])
     expect(Object.keys(api.slide)).toEqual(['exportPptx'])
@@ -58,7 +58,9 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
 
     // Exercise every method → each maps to its channel, and never leaks raw ipc.
     void api.app.getInfo()
+    void api.app.firstRun()
     expect(invoke).toHaveBeenCalledWith(IPC.appGetInfo)
+    expect(invoke).toHaveBeenCalledWith(IPC.appFirstRun)
     void api.sheet.exportXlsx({ cells: {}, rows: 1, cols: 1 })
     expect(invoke).toHaveBeenCalledWith(IPC.sheetExportXlsx, { cells: {}, rows: 1, cols: 1 })
     void api.doc.exportDocx({ blocks: [] })

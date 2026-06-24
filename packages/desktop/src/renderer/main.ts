@@ -1,10 +1,10 @@
-import { loadSkin, mountShell, bridge } from '@saathi/frontend'
+import { loadSkin, startApp, bridge } from '@saathi/frontend'
 
-// The host's renderer is intentionally thin: it just mounts the frontend package
+// The host's renderer is intentionally thin: it just boots the frontend package
 // and wires the secure bridge round-trip. All UI lives in @saathi/frontend.
 loadSkin()
 const root = document.getElementById('app')
-if (root) mountShell(root)
+if (root) void startApp(root)
 
 bridge
   .getAppInfo()

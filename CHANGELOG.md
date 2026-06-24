@@ -4,6 +4,11 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M11b First-run onboarding wizard
+- **A short, branded first-run wizard**: *"Hi — I'm Saathi… what should I call you?"* → **how the AI runs** (Offline = local Ollama + Shiva, or Cloud BYOK + key) → **web search** (None / Serper / Brave + key) → done. It writes into the M11a settings, storing any keys **encrypted**, then mounts the app — and won't ask again.
+- **First-run is gated in main**: `app:firstRun` returns true only in a **packaged** build that isn't onboarded yet (or with `--force-onboarding`), so dev and all existing e2e get the shell directly — **no spec changes, all 20 prior e2e still pass**. `startApp(root)` boots the wizard-or-shell; the renderer entry now calls it.
+- Tests: wizard integration (walk → save settings + `onboarded:true` → `onDone`; cloud path stores an encrypted key; Back), `bridge.firstRun`, preload contract, e2e (`--force-onboarding` → wizard → app). 238 unit/int + 21 e2e green; coverage met. Screenshots: onboarding light + dark.
+
 ### Added — M11a Settings + encrypted keys
 - **A real Settings pane** (Profile · AI provider · Web search · Appearance · About): set your **name** and **theme**, choose **Offline (local Ollama + Shiva)** or **Cloud (BYOK)**, pick a web-search provider (None / Serper / Brave), and save provider **API keys**.
 - **Keys are encrypted at rest** via Electron **`safeStorage`** (OS-backed: Windows DPAPI), wrapped in a main-process `SecretStore` (ADR-0008). The renderer can **set / check-presence / clear** a key but **never read it** — there is deliberately no `secret:get` IPC; plaintext keys live only in main. The UI shows a key only as "Set ✓ (encrypted)". Non-secret config is a JSON `SettingsPort`/`JsonSettings` (`@saathi/backend`, unit-tested).

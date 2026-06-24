@@ -44,7 +44,7 @@ export interface BrowserPort {
 
 type SaathiWindow = {
   saathi?: {
-    app: { getInfo(): Promise<AppInfo> }
+    app: { getInfo(): Promise<AppInfo>; firstRun?(): Promise<boolean> }
     sheet?: { exportXlsx(data: SheetData): Promise<ExportResult> }
     doc?: { exportDocx(data: DocData): Promise<ExportResult>; exportPdf(data: DocData): Promise<ExportResult> }
     slide?: { exportPptx(data: DeckData): Promise<ExportResult> }
@@ -72,6 +72,13 @@ async function getAppInfo(): Promise<AppInfo> {
   const w = globalThis as unknown as SaathiWindow
   if (w.saathi?.app?.getInfo) return w.saathi.app.getInfo()
   return { name: 'Saathi', version: '0.0.0-dev', platform: 'web' }
+}
+
+/** Whether to show first-run onboarding. Without a host (standalone), never. */
+async function firstRun(): Promise<boolean> {
+  const w = globalThis as unknown as SaathiWindow
+  if (w.saathi?.app?.firstRun) return w.saathi.app.firstRun()
+  return false
 }
 
 async function exportXlsx(data: SheetData): Promise<ExportResult> {
@@ -183,6 +190,7 @@ function settingsControl(): SettingsControl {
 
 export const bridge = {
   getAppInfo,
+  firstRun,
   exportXlsx,
   exportDocx,
   exportPdf,

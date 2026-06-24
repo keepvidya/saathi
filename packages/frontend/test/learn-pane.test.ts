@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderLearn, type LearnOptions } from '../src/panes/learn/learn-pane'
 import type { SpeechPort } from '../src/adapters/speech/speech.adapter'
 import { PlainMath } from '../src/adapters/katex/math.adapter'
 import { PlainHighlight, type CodeHighlightPort } from '../src/adapters/shiki/highlight.adapter'
+import { PlainDiagram, type DiagramRenderPort } from '../src/adapters/mermaid/diagram.adapter'
 import type { Lesson } from '@saathi/domain'
 
 const LESSON: Lesson = {
@@ -34,14 +35,17 @@ const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
 
 describe('TC-10.2 — Learn pane', () => {
   let host: HTMLElement
-  // Default to PlainHighlight so the unit tests never load Shiki (fast + deterministic).
+  // Default to plain adapters so unit tests never load Shiki/Mermaid (fast + deterministic).
   const render = (opts: LearnOptions = {}): void =>
-    renderLearn(host, { highlight: new PlainHighlight(), ...opts })
+    renderLearn(host, { highlight: new PlainHighlight(), diagram: new PlainDiagram(), ...opts })
 
   beforeEach(() => {
     document.body.innerHTML = ''
     host = document.createElement('div')
     document.body.append(host)
+  })
+  afterEach(() => {
+    document.documentElement.removeAttribute('data-theme')
   })
 
   it('TC-10.2.1 — renders prose, code, and quiz blocks', () => {
@@ -151,5 +155,44 @@ describe('TC-10.2 — Learn pane', () => {
     render({ lesson, highlight: new PlainHighlight() })
     await flush()
     expect(host.querySelector('.lsn-code-body')?.innerHTML).toContain('&lt;b&gt;x&lt;/b&gt;')
+  })
+
+  const diagramLesson: Lesson = {
+    title: 'Diagram',
+    blocks: [{ kind: 'diagram', title: 'Flow', code: 'graph LR; A-->B' }],
+  }
+
+  it('TC-13.2.1 — diagram shows source first, then the rendered SVG', async () => {
+    const diagram: DiagramRenderPort = {
+      render: vi.fn().mockResolvedValue('<svg id="d">SVG</svg>'),
+    }
+    render({ lesson: diagramLesson, diagram })
+
+    // synchronously: the plain source is shown
+    expect(host.querySelector('.lsn-diagram-body')?.textContent).toContain('graph LR; A-->B')
+    expect(host.querySelector('.lsn-diagram-body svg')).toBeNull()
+
+    await flush()
+    expect(diagram.render).toHaveBeenCalledWith('graph LR; A-->B', 'light')
+    expect(host.querySelector('.lsn-diagram-body svg')?.textContent).toBe('SVG')
+  })
+
+  it('TC-13.2.2 — a theme switch re-renders the diagram in the new theme', async () => {
+    const diagram: DiagramRenderPort = {
+      render: vi.fn().mockResolvedValue('<svg>X</svg>'),
+    }
+    render({ lesson: diagramLesson, diagram })
+    await flush()
+    expect(diagram.render).toHaveBeenLastCalledWith('graph LR; A-->B', 'light')
+
+    document.documentElement.setAttribute('data-theme', 'dark')
+    await flush()
+    expect(diagram.render).toHaveBeenLastCalledWith('graph LR; A-->B', 'dark')
+  })
+
+  it('TC-13.2.3 — PlainDiagram fallback keeps the escaped source, no throw', async () => {
+    render({ lesson: { title: 'D', blocks: [{ kind: 'diagram', code: 'a<b' }] }, diagram: new PlainDiagram() })
+    await flush()
+    expect(host.querySelector('.lsn-diagram-body')?.innerHTML).toContain('a&lt;b')
   })
 })

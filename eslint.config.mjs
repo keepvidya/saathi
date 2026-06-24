@@ -27,6 +27,7 @@ export default tseslint.config(
             { group: ['@saathi/backend', '@saathi/backend/*'], message: 'Frontend talks over IPC, not the backend.' },
             { regex: '^katex(/|$)', message: 'Wrap KaTeX in frontend/src/adapters, not here.' },
             { regex: '^shiki(/|$)', message: 'Wrap Shiki in frontend/src/adapters, not here.' },
+            { regex: '^mermaid(/|$)', message: 'Wrap Mermaid in frontend/src/adapters, not here.' },
           ],
         },
       ],

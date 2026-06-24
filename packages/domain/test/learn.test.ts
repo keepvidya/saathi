@@ -93,3 +93,13 @@ describe('TC-11.1 — math block (domain)', () => {
     expect(lessonPlainText(sampleLesson())).not.toContain('\\pi') // the sample's formula
   })
 })
+
+describe('TC-13.1 — diagram block (domain)', () => {
+  it('sampleLesson includes a diagram block', () => {
+    const diagrams = sampleLesson().blocks.filter((b) => b.kind === 'diagram')
+    expect(diagrams.length).toBeGreaterThanOrEqual(1)
+  })
+  it('lessonPlainText omits the diagram definition', () => {
+    expect(lessonPlainText(sampleLesson())).not.toContain('graph')
+  })
+})

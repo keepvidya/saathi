@@ -28,6 +28,8 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
       'py',
       'browser',
       'memory',
+      'settings',
+      'secrets',
     ])
     expect(Object.keys(api.app)).toEqual(['getInfo'])
     expect(Object.keys(api.sheet)).toEqual(['exportXlsx'])
@@ -51,6 +53,8 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
       'onEvent',
     ])
     expect(Object.keys(api.memory)).toEqual(['remember', 'recall', 'list', 'forget'])
+    expect(Object.keys(api.settings)).toEqual(['get', 'set'])
+    expect(Object.keys(api.secrets)).toEqual(['set', 'has', 'clear']) // no `get` — keys stay in main
 
     // Exercise every method → each maps to its channel, and never leaks raw ipc.
     void api.app.getInfo()
@@ -78,9 +82,17 @@ describe('TC-00.2.1 — secure webPreferences + preload contract', () => {
     void api.memory.recall('q', 5)
     void api.memory.list()
     void api.memory.forget('id')
+    void api.settings.get()
+    void api.settings.set({ userName: 'G' })
+    void api.secrets.set('k', 'v')
+    void api.secrets.has('k')
+    void api.secrets.clear('k')
     expect(invoke).toHaveBeenCalledWith(IPC.browserNavigate, 1, 'x')
     expect(invoke).toHaveBeenCalledWith(IPC.browserToggleShields)
     expect(invoke).toHaveBeenCalledWith(IPC.memoryRemember, 'note')
+    expect(invoke).toHaveBeenCalledWith(IPC.secretSet, 'k', 'v')
+    // the renderer surface must NOT expose a way to read a secret back
+    expect((api.secrets as Record<string, unknown>).get).toBeUndefined()
 
     // onEvent uses the push channel (defaults to a no-op unsubscribe in tests)
     expect(api.browser.onEvent(() => {})).toBeTypeOf('function')

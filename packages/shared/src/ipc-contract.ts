@@ -28,6 +28,11 @@ export const IPC = {
   memoryRecall: 'memory:recall',
   memoryList: 'memory:list',
   memoryForget: 'memory:forget',
+  settingsGet: 'settings:get',
+  settingsSet: 'settings:set',
+  secretSet: 'secret:set',
+  secretHas: 'secret:has',
+  secretClear: 'secret:clear',
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]
@@ -71,6 +76,30 @@ export interface MemoryItem {
   id: string
   text: string
   createdAt: number
+}
+
+/** Non-secret app configuration (API keys are stored separately + encrypted). */
+export interface AppSettings {
+  userName: string
+  llmMode: 'offline' | 'cloud'
+  cloudProvider: string
+  searchProvider: 'none' | 'serper' | 'brave'
+  onboarded: boolean
+}
+
+/** Names of the secrets held (encrypted) by the main-process SecretStore. */
+export const SECRET_LLM = 'llm-api-key'
+export const SECRET_SEARCH = 'search-api-key'
+
+/** Default (first-run) settings. */
+export function defaultSettings(): AppSettings {
+  return {
+    userName: '',
+    llmMode: 'offline',
+    cloudProvider: 'openai',
+    searchProvider: 'none',
+    onboarded: false,
+  }
 }
 
 /** The whole browser state pushed to the renderer on any change. */

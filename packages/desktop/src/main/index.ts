@@ -10,6 +10,7 @@ import {
   PdfJsRead,
   PyodideRun,
   JsonMemory,
+  JsonSettings,
   OllamaLlm,
   OllamaChat,
 } from '@saathi/backend'
@@ -20,9 +21,11 @@ import {
   type ExportResult,
   type PyRunResult,
   type ViewBounds,
+  type AppSettings,
 } from '@saathi/shared'
 import { WINDOW_SECURITY, CSP } from './security'
 import { BrowserTabs } from './browser-tabs'
+import { SecretStore } from './secret-store'
 
 const isDev = !!process.env.ELECTRON_RENDERER_URL
 
@@ -203,6 +206,32 @@ ipcMain.handle(IPC.memoryList, () => mem().list())
 ipcMain.handle(IPC.memoryForget, (_e, id: unknown) => {
   if (typeof id === 'string') mem().forget(id)
 })
+
+// Settings (non-secret JSON) + secrets (encrypted via safeStorage — ADR-0008). Lazy.
+let settings: JsonSettings | null = null
+let secrets: SecretStore | null = null
+function settingsStore(): JsonSettings {
+  if (!settings) settings = new JsonSettings(join(app.getPath('userData'), 'saathi-settings.json'))
+  return settings
+}
+function secretStore(): SecretStore {
+  if (!secrets) secrets = new SecretStore(join(app.getPath('userData'), 'saathi-secrets.json'))
+  return secrets
+}
+ipcMain.handle(IPC.settingsGet, () => settingsStore().get())
+ipcMain.handle(IPC.settingsSet, (_e, patch: unknown) =>
+  settingsStore().set((patch ?? {}) as Partial<AppSettings>),
+)
+ipcMain.handle(IPC.secretSet, (_e, name: unknown, value: unknown) => {
+  if (typeof name === 'string' && typeof value === 'string') secretStore().setSecret(name, value)
+})
+ipcMain.handle(IPC.secretHas, (_e, name: unknown) =>
+  typeof name === 'string' ? secretStore().hasSecret(name) : false,
+)
+ipcMain.handle(IPC.secretClear, (_e, name: unknown) => {
+  if (typeof name === 'string') secretStore().clearSecret(name)
+})
+// NOTE: there is deliberately NO secret:get handler — plaintext keys stay in main.
 
 void app.whenReady().then(() => {
   if (!isDev) {

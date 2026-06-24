@@ -1,84 +1,97 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderOnboarding } from '../src/onboarding/onboarding'
-import type { SettingsControl } from '../src/bridge/saathi.bridge'
+import type { SettingsControl, SetupControl } from '../src/bridge/saathi.bridge'
 import { SECRET_LLM, defaultSettings, type AppSettings } from '@saathi/shared'
 
 const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
 
-function makeStub() {
+function makeSettings() {
   const state: AppSettings = defaultSettings()
   const secrets: Record<string, string> = {}
   const control: SettingsControl = {
     get: vi.fn(async () => state),
     set: vi.fn(async (p: Partial<AppSettings>) => Object.assign(state, p)),
-    hasSecret: vi.fn(async (n: string) => !!secrets[n]),
+    hasSecret: vi.fn(async () => false),
     setSecret: vi.fn(async (n: string, v: string) => {
       secrets[n] = v
     }),
     clearSecret: vi.fn(async () => {}),
   }
-  return { control, state, secrets }
+  return control
 }
 
-describe('TC-21.2 — onboarding wizard', () => {
+function makeSetup(recommend: 'ultra' | 'lite' = 'lite') {
+  const control: SetupControl = {
+    hardware: vi.fn(async () => ({ totalMemGB: 16, cores: 8, recommend })),
+    ollamaStatus: vi.fn(async () => ({ installed: false, running: false, models: [] })),
+    ollamaSetup: vi.fn(async () => {}),
+    onSetupProgress: vi.fn(() => () => {}),
+  }
+  return control
+}
+
+describe('TC-21.2 — onboarding wizard (hardware + Shiva setup)', () => {
   let host: HTMLElement
   beforeEach(() => {
     document.body.innerHTML = ''
     host = document.createElement('div')
     document.body.append(host)
   })
-
   const click = (id: string): void => host.querySelector<HTMLButtonElement>(id)!.click()
 
-  it('walks name → offline → none → finish; saves settings + onboarded; calls onDone', async () => {
-    const { control } = makeStub()
-    const onDone = vi.fn()
-    renderOnboarding(host, { settings: control, onDone })
+  it('shows the hardware check + recommended mode', async () => {
+    renderOnboarding(host, { settings: makeSettings(), setup: makeSetup('lite'), onDone: vi.fn() })
+    await flush()
+    click('#onb-primary') // → mode step
+    expect(host.querySelector('.onb-p')?.textContent).toContain('16 GB RAM')
+    expect(host.querySelector('.onb-opt.mode[data-mode="lite"] .onb-rec')?.textContent).toContain('Recommended')
+  })
 
-    // step 0 — name
+  it('offline path: name → Lite → embedding → pulls Shiva → finishes', async () => {
+    const settings = makeSettings()
+    const setup = makeSetup('lite')
+    const onDone = vi.fn()
+    renderOnboarding(host, { settings, setup, onDone })
+    await flush()
+
     const name = host.querySelector<HTMLInputElement>('#onb-name')!
     name.value = 'Gunjan'
     name.dispatchEvent(new Event('input', { bubbles: true }))
-    click('#onb-primary') // → step 1 (offline default)
-    click('#onb-primary') // → step 2 (none default)
-    click('#onb-primary') // → step 3 (finish view)
-    expect(host.querySelector('.onb-h')?.textContent).toContain('Gunjan')
-    click('#onb-primary') // Finish
+    click('#onb-primary') // → mode (Lite recommended/selected)
+    click('#onb-primary') // → embedding
+    click('#onb-primary') // → setup (offline) — triggers ollamaSetup
     await flush()
+    expect(setup.ollamaSetup).toHaveBeenCalledWith('shiva-chat:7b')
 
-    expect(control.set).toHaveBeenCalledWith(
-      expect.objectContaining({ userName: 'Gunjan', llmMode: 'offline', onboarded: true }),
+    click('#onb-primary') // Enter Saathi
+    await flush()
+    expect(settings.set).toHaveBeenCalledWith(
+      expect.objectContaining({ userName: 'Gunjan', runMode: 'lite', llmMode: 'offline', onboarded: true }),
     )
     expect(onDone).toHaveBeenCalledOnce()
   })
 
-  it('cloud path reveals the key field and stores the key encrypted', async () => {
-    const { control } = makeStub()
-    renderOnboarding(host, { settings: control, onDone: vi.fn() })
+  it('heavy path: choose Heavy → key step → stores the cloud key', async () => {
+    const settings = makeSettings()
+    const onDone = vi.fn()
+    renderOnboarding(host, { settings, setup: makeSetup('lite'), onDone })
+    await flush()
 
-    click('#onb-primary') // → step 1
-    const cloud = host.querySelector<HTMLInputElement>('input[name="onb-llm"][value="cloud"]')!
-    cloud.checked = true
-    cloud.dispatchEvent(new Event('change', { bubbles: true }))
-    expect(host.querySelector<HTMLElement>('#onb-llm-key')!.hidden).toBe(false)
-    const key = host.querySelector<HTMLInputElement>('#onb-llm-input')!
-    key.value = 'sk-live-123'
+    click('#onb-primary') // → mode
+    const heavy = host.querySelector<HTMLInputElement>('input[name="onb-mode"][value="heavy"]')!
+    heavy.checked = true
+    heavy.dispatchEvent(new Event('change', { bubbles: true }))
+    click('#onb-primary') // → embedding
+    click('#onb-primary') // → key step (heavy)
+
+    const key = host.querySelector<HTMLInputElement>('#onb-key')!
+    key.value = 'sk-cloud-1'
     key.dispatchEvent(new Event('input', { bubbles: true }))
-
-    click('#onb-primary') // → step 2
-    click('#onb-primary') // → step 3
     click('#onb-primary') // Finish
     await flush()
 
-    expect(control.set).toHaveBeenCalledWith(expect.objectContaining({ llmMode: 'cloud', onboarded: true }))
-    expect(control.setSecret).toHaveBeenCalledWith(SECRET_LLM, 'sk-live-123')
-  })
-
-  it('Back returns to the previous step', () => {
-    renderOnboarding(host, { settings: makeStub().control, onDone: vi.fn() })
-    click('#onb-primary') // step 1
-    expect(host.querySelector('.onb-h')?.textContent).toContain('How should I think')
-    click('#onb-back') // step 0
-    expect(host.querySelector('#onb-name')).toBeTruthy()
+    expect(settings.set).toHaveBeenCalledWith(expect.objectContaining({ runMode: 'heavy', llmMode: 'cloud', onboarded: true }))
+    expect(settings.setSecret).toHaveBeenCalledWith(SECRET_LLM, 'sk-cloud-1')
+    expect(onDone).toHaveBeenCalledOnce()
   })
 })

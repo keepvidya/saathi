@@ -27,6 +27,7 @@ import updaterPkg from 'electron-updater'
 import { WINDOW_SECURITY, CSP } from './security'
 import { BrowserTabs } from './browser-tabs'
 import { SecretStore } from './secret-store'
+import { hardwareInfo, ollamaStatus, OllamaSetup } from './system-setup'
 
 const { autoUpdater } = updaterPkg
 
@@ -243,6 +244,16 @@ ipcMain.handle(IPC.secretClear, (_e, name: unknown) => {
   if (typeof name === 'string') secretStore().clearSecret(name)
 })
 // NOTE: there is deliberately NO secret:get handler — plaintext keys stay in main.
+
+// Hardware check + Ollama/Shiva setup (onboarding). The installer bundles neither;
+// for offline modes we pull the Shiva model, installing Ollama first if missing.
+ipcMain.handle(IPC.systemHardware, () => hardwareInfo())
+ipcMain.handle(IPC.ollamaStatus, () => ollamaStatus())
+ipcMain.handle(IPC.ollamaSetup, async (_e, model: unknown): Promise<void> => {
+  if (typeof model !== 'string' || !model) return
+  const setup = new OllamaSetup((p) => mainWindow?.webContents.send(IPC.ollamaSetupProgress, p))
+  await setup.run(model)
+})
 
 void app.whenReady().then(() => {
   if (!isDev) {

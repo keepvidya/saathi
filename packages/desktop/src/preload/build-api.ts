@@ -7,6 +7,9 @@ import {
   type ViewBounds,
   type MemoryItem,
   type AppSettings,
+  type HardwareInfo,
+  type OllamaStatus,
+  type SetupProgress,
 } from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
@@ -86,6 +89,15 @@ export function buildApi(invoke: Invoke, on: On = () => () => {}) {
         invoke(IPC.secretSet, name, value) as Promise<void>,
       has: (name: string): Promise<boolean> => invoke(IPC.secretHas, name) as Promise<boolean>,
       clear: (name: string): Promise<void> => invoke(IPC.secretClear, name) as Promise<void>,
+    },
+    system: {
+      hardware: (): Promise<HardwareInfo> => invoke(IPC.systemHardware) as Promise<HardwareInfo>,
+    },
+    ollama: {
+      status: (): Promise<OllamaStatus> => invoke(IPC.ollamaStatus) as Promise<OllamaStatus>,
+      setup: (model: string): Promise<void> => invoke(IPC.ollamaSetup, model) as Promise<void>,
+      onProgress: (cb: (p: SetupProgress) => void): (() => void) =>
+        on(IPC.ollamaSetupProgress, (p) => cb(p as SetupProgress)),
     },
   }
 }

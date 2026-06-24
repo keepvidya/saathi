@@ -16,6 +16,7 @@
     "dev": "npm run dev --workspace @saathi/desktop",
     "dev:frontend": "npm run dev --workspace @saathi/frontend",
     "build": "npm run build --workspace @saathi/desktop",
+    "package": "npm run package --workspace @saathi/desktop",
     "typecheck": "tsc -p packages/shared && tsc -p packages/domain && tsc -p packages/backend && tsc -p packages/frontend && tsc -p packages/desktop",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",

@@ -1,10 +1,19 @@
-import { IPC, type AppInfo, type ExportResult, type PyRunResult } from '@saathi/shared'
+import {
+  IPC,
+  type AppInfo,
+  type ExportResult,
+  type PyRunResult,
+  type BrowserSnapshot,
+  type ViewBounds,
+} from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
 
 /** Pure API factory — testable without Electron. One method per IPC channel. */
 export type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>
+/** Subscribe to a push channel; returns an unsubscribe. No-op by default (tests). */
+export type On = (channel: string, listener: (...args: unknown[]) => void) => () => void
 
-export function buildApi(invoke: Invoke) {
+export function buildApi(invoke: Invoke, on: On = () => () => {}) {
   return {
     app: {
       getInfo: (): Promise<AppInfo> => invoke(IPC.appGetInfo) as Promise<AppInfo>,
@@ -36,6 +45,23 @@ export function buildApi(invoke: Invoke) {
     },
     py: {
       run: (code: string): Promise<PyRunResult> => invoke(IPC.pyRun, code) as Promise<PyRunResult>,
+    },
+    browser: {
+      newTab: (url?: string): Promise<BrowserSnapshot> =>
+        invoke(IPC.browserNewTab, url) as Promise<BrowserSnapshot>,
+      closeTab: (id: number): Promise<void> => invoke(IPC.browserCloseTab, id) as Promise<void>,
+      activate: (id: number): Promise<void> => invoke(IPC.browserActivate, id) as Promise<void>,
+      navigate: (id: number, input: string): Promise<void> =>
+        invoke(IPC.browserNavigate, id, input) as Promise<void>,
+      back: (id: number): Promise<void> => invoke(IPC.browserBack, id) as Promise<void>,
+      forward: (id: number): Promise<void> => invoke(IPC.browserForward, id) as Promise<void>,
+      reload: (id: number): Promise<void> => invoke(IPC.browserReload, id) as Promise<void>,
+      setBounds: (rect: ViewBounds): Promise<void> =>
+        invoke(IPC.browserSetBounds, rect) as Promise<void>,
+      setVisible: (visible: boolean): Promise<void> =>
+        invoke(IPC.browserSetVisible, visible) as Promise<void>,
+      onEvent: (cb: (snap: BrowserSnapshot) => void): (() => void) =>
+        on(IPC.browserEvent, (snap) => cb(snap as BrowserSnapshot)),
     },
   }
 }

@@ -12,6 +12,17 @@ export const IPC = {
   chatReply: 'chat:reply',
   pdfExtractText: 'pdf:extractText',
   pyRun: 'py:run',
+  browserNewTab: 'browser:newTab',
+  browserCloseTab: 'browser:closeTab',
+  browserActivate: 'browser:activate',
+  browserNavigate: 'browser:navigate',
+  browserBack: 'browser:back',
+  browserForward: 'browser:forward',
+  browserReload: 'browser:reload',
+  browserSetBounds: 'browser:setBounds',
+  browserSetVisible: 'browser:setVisible',
+  /** push: main → renderer, on any tab/navigation change */
+  browserEvent: 'browser:event',
 } as const
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC]
@@ -32,4 +43,28 @@ export interface ExportResult {
 export interface PyRunResult {
   ok: boolean
   output: string
+}
+
+/** A browser tab's state, as carried over IPC (mirrors the domain `Tab`). */
+export interface TabState {
+  id: number
+  title: string
+  url: string
+  loading: boolean
+  canGoBack: boolean
+  canGoForward: boolean
+}
+
+/** The whole browser state pushed to the renderer on any change. */
+export interface BrowserSnapshot {
+  tabs: TabState[]
+  activeId?: number
+}
+
+/** Pixel bounds of the renderer's content region, where the active view is sized. */
+export interface ViewBounds {
+  x: number
+  y: number
+  width: number
+  height: number
 }

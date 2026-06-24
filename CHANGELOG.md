@@ -4,6 +4,13 @@ All notable changes to Saathi are documented here. Format: [Keep a Changelog](ht
 
 ## [Unreleased]
 
+### Added — M9a Browser (multi-tab, WebContentsView)
+- **A real multi-tab browser** inside Saathi: open/switch/close tabs, back/forward/reload, and a combined **address + search** bar. Web content runs in sandboxed **WebContentsView**s in the **main process** (`contextIsolation`, `sandbox`, no `nodeIntegration`, isolated session) — never in the app renderer; `window.open`/`target=_blank` opens a new in-app tab, not a popup.
+- **Deterministic core** (`@saathi/domain/browser`): `parseAddress` decides URL vs search (scheme/localhost/IP/`host.tld` → navigate; otherwise → a DuckDuckGo search) and `TabSet` is the tab/active-tab state machine — *our code*, fully unit-tested.
+- **New IPC patterns**: a typed `browser:*` command set (invoke) **plus the app's first main→renderer push channel** (`browser:event`) for live tab/nav state; the preload gained an allow-listed `onEvent` subscription. The Browser pane reports its content-region bounds so the active view is sized to fit, and hides the views when you navigate away.
+- Tests: domain units (`parseAddress` cases, `TabSet` state machine), Browser-pane integration (pushed-state reflection, address→navigate, tab/toolbar controls, self-cleanup on leave), e2e (open → navigate a `data:` page → title/address update → multi-tab; no network). 184 unit/int + 15 e2e green; coverage met. Screenshots: browser light + dark.
+- **Deferred → M9b Shields:** ad/tracker blocking (`@ghostery/adblocker-electron`), plus later history/bookmarks/downloads, self-hosted SearXNG, agent-drive.
+
 ### Added — M8e Learn · Runnable code (Pyodide, in the main process)
 - **Runnable Python snippets**: a `runnable` flag on the `code` block (`@saathi/domain`, additive) adds a **Run** button; clicking executes the code with **real CPython (Pyodide)** and shows its actual stdout — the narrator principle at full strength (the output is *real program output*, offline). A Python error shows the error text, not a crash.
 - **Pyodide runs in the main process** (ADR-0006), behind a `PyRunPort` + `PyodideRun` adapter (`@saathi/backend`, lazy singleton, explicit `indexURL`) reached via a `py:run` IPC channel + `bridge.runPython`. The renderer never touches WASM, so there is **no CSP change** and no `unsafe-eval` — consistent with the privacy/security baseline. The backend Wrapper Rule now covers `pyodide`.

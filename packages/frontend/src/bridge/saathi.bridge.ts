@@ -1,5 +1,25 @@
-import type { AppInfo, ExportResult, PyRunResult } from '@saathi/shared'
+import type {
+  AppInfo,
+  ExportResult,
+  PyRunResult,
+  BrowserSnapshot,
+  ViewBounds,
+} from '@saathi/shared'
 import type { SheetData, DocData, DeckData, NarratePrompt, ChatMessage } from '@saathi/domain'
+
+/** The browser control surface the Browser pane depends on (host or a test stub). */
+export interface BrowserPort {
+  newTab(url?: string): Promise<BrowserSnapshot>
+  closeTab(id: number): Promise<void>
+  activate(id: number): Promise<void>
+  navigate(id: number, input: string): Promise<void>
+  back(id: number): Promise<void>
+  forward(id: number): Promise<void>
+  reload(id: number): Promise<void>
+  setBounds(rect: ViewBounds): Promise<void>
+  setVisible(visible: boolean): Promise<void>
+  onEvent(cb: (snap: BrowserSnapshot) => void): () => void
+}
 
 type SaathiWindow = {
   saathi?: {
@@ -11,6 +31,7 @@ type SaathiWindow = {
     chat?: { reply(messages: ChatMessage[]): Promise<string> }
     pdf?: { extractText(bytes: Uint8Array): Promise<string> }
     py?: { run(code: string): Promise<PyRunResult> }
+    browser?: BrowserPort
   }
 }
 
@@ -77,6 +98,25 @@ async function runPython(code: string): Promise<PyRunResult> {
   return { ok: false, output: 'Running code needs the Saathi desktop app.' }
 }
 
+/** The browser control surface. Uses the host when present, else a safe no-op port. */
+function browserPort(): BrowserPort {
+  const w = globalThis as unknown as SaathiWindow
+  if (w.saathi?.browser) return w.saathi.browser
+  const empty: BrowserSnapshot = { tabs: [], activeId: undefined }
+  return {
+    newTab: async () => empty,
+    closeTab: async () => {},
+    activate: async () => {},
+    navigate: async () => {},
+    back: async () => {},
+    forward: async () => {},
+    reload: async () => {},
+    setBounds: async () => {},
+    setVisible: async () => {},
+    onEvent: () => () => {},
+  }
+}
+
 export const bridge = {
   getAppInfo,
   exportXlsx,
@@ -87,4 +127,5 @@ export const bridge = {
   chatReply,
   extractPdfText,
   runPython,
+  browserPort,
 }
